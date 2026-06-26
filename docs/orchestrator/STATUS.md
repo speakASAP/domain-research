@@ -176,3 +176,19 @@ Validation: `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit
 - Live Auth verification: `curl -isk "https://auth.alfares.cz/auth/validate-return-url?return_url=https%3A%2F%2Fdomain-research.alfares.cz%2F"` returned HTTP 200 with `{"valid":true,"return_url":"https://domain-research.alfares.cz/"}`.
 - Live Auth pod DB query after the additive seed confirmed `app=1`, `user_role=1`, and `admin_role=1` for `domain-research`.
 - Conclusion: the hosted Auth lane is complete; no autonomous implementation task remains until paid registrar/provider approval or a dedicated notifications machine-auth contract is approved.
+
+## 2026-06-26 TASK-005 Watch Bulk Entry And Smarter AI Suggestions
+
+Owner-approved change:
+
+- Watch form now accepts comma-separated domains, Enter-confirmed domains, and pasted domain blocks as removable chips before submission.
+- Watch submission creates all pending chip domains and keeps failed domains visible for correction.
+- Domain suggestion AI requests now default to `model_tier=smart`, with `AI_MODEL_TIER` still available as the override.
+- Production ConfigMap now sets `AI_MODEL_TIER: "smart"` instead of `"cheap"`.
+
+Validation:
+
+- `node --check public/app.js` passed.
+- `git diff --check` passed.
+- `npm run build` passed.
+- `npm test` passed with 6 suites / 14 tests.

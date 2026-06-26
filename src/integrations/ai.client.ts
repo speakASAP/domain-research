@@ -19,9 +19,9 @@ export class AiClient {
         ...(process.env.AI_SERVICE_TOKEN ? { authorization: `Bearer ${process.env.AI_SERVICE_TOKEN}` } : {}),
       },
       body: JSON.stringify({
-        model_tier: process.env.AI_MODEL_TIER || 'cheap',
-        system_prompt: 'Suggest short brandable domain second-level names. Return JSON array of lowercase ASCII strings only.',
-        user_prompt: `Business or service description: ${description}\nReturn ${count} candidates.`,
+        model_tier: process.env.AI_MODEL_TIER || 'smart',
+        system_prompt: 'Suggest strong, short, brandable domain second-level names for a real business. Avoid generic filler, unrelated words, and explanations. Return JSON array of lowercase ASCII strings only.',
+        user_prompt: `Business or service description: ${description}\nReturn ${count} distinct candidates.`,
         output_schema: { type: 'array', items: { type: 'string' } },
         agent_service_scope: 'domain-research',
         agent_slug: 'domain-suggestion',

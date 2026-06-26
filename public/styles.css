@@ -259,7 +259,56 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
+  align-items: start;
   margin-bottom: 14px;
+}
+
+.watch-domain-entry {
+  display: grid;
+  gap: 8px;
+}
+
+.watch-domain-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.watch-domain-chips:empty {
+  display: none;
+}
+
+.watch-domain-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border: 1px solid #b7d7d2;
+  border-radius: 999px;
+  padding: 5px 7px 5px 10px;
+  background: #e8f5f2;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.watch-domain-chip span {
+  overflow-wrap: anywhere;
+}
+
+.watch-domain-chip button {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #9fcac3;
+  border-radius: 999px;
+  padding: 0;
+  background: #ffffff;
+  color: var(--accent-strong);
+  line-height: 1;
+}
+
+.watch-domain-chip button:hover {
+  background: #d7eee9;
 }
 
 .watch-actions {

@@ -67,3 +67,24 @@ Acceptance:
 - User can accept or decline drop tracking.
 - Scheduler sends deduplicated week, 24-hour, 1-hour, and availability notifications.
 - Final-day checks run hourly per watch through due scheduling.
+
+## TASK-005 Watch Bulk Entry And Smarter AI Suggestions
+
+Status: completed
+
+Trace:
+
+- Vision: `01_vision/VISION.md`
+- Goal Impact: `[MISSING: dedicated goal-impact document for owner-requested UX/AI quality polish]`
+- System: `04_systems/SYS-001-domain-research-service.md`
+- Feature: `10_features/FEAT-001-domain-suggestion-and-watch.md`
+- Execution Plan: `[MISSING: dedicated execution plan document for owner-requested UX/AI quality polish]`
+- Coding Prompt: owner request on 2026-06-26 to support comma/Enter/paste domain watch entry and use a smarter AI model tier.
+- Validation: `node --check public/app.js`, `git diff --check`, `npm run build`, `npm test`.
+
+Acceptance:
+
+- Watch input turns comma-separated entries and Enter-confirmed entries into removable domain chips.
+- Pasted domain blocks can create multiple pending watch chips at once.
+- Submitting creates watches for all pending chips and keeps failed domains visible.
+- AI suggestions use the `smart` tier by default and production config sets `AI_MODEL_TIER=smart`.

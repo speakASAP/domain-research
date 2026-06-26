@@ -39,3 +39,9 @@ Deploy to Kubernetes, register in ecosystem docs, trigger docs-rag ingestion, an
 Status: completed
 
 Warn users before watched domains are likely to leave post-expiration protection and become available. Preserve current-provider-check evidence before any availability notification.
+
+## Goal 7: Watch Entry UX And AI Suggestion Quality
+
+Status: completed
+
+Allow users to add watched domains in bulk from comma-separated, Enter-confirmed, or pasted domain blocks, and route domain suggestion calls through the smarter AI tier instead of the cheap tier.

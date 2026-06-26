@@ -24,4 +24,4 @@ data:
   DB_SYNC: "false"
   RDAP_BOOTSTRAP_URL: "https://data.iana.org/rdap/dns.json"
   DEFAULT_TLDS: "com,cz"
-  AI_MODEL_TIER: "cheap"
+  AI_MODEL_TIER: "smart"

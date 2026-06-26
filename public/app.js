@@ -1,5 +1,6 @@
 const state = {
   candidates: [],
+  watchDomains: [],
   voice: {
     active: false,
     baseText: '',
@@ -24,6 +25,9 @@ const voiceButtonText = document.getElementById('voiceButtonText');
 const voiceStatus = document.getElementById('voiceStatus');
 const authButton = document.getElementById('authButton');
 const authStatus = document.getElementById('authStatus');
+const watchForm = document.getElementById('watchForm');
+const watchDomainInput = document.getElementById('watchDomain');
+const watchDomainChips = document.getElementById('watchDomainChips');
 
 function getAccessToken() {
   return sessionStorage.getItem(STORAGE_ACCESS) || LEGACY_ACCESS_KEYS.map((key) => sessionStorage.getItem(key)).find(Boolean) || '';
@@ -246,20 +250,116 @@ document.getElementById('checkSelected').addEventListener('click', async () => {
   renderCandidates();
 });
 
-document.getElementById('watchForm').addEventListener('submit', async (event) => {
+function parseWatchDomains(value) {
+  return String(value || '')
+    .split(/[,\s]+/)
+    .map(normalizeWatchDomain)
+    .filter(Boolean);
+}
+
+function normalizeWatchDomain(value) {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0]
+    .replace(/[.;:]+$/g, '');
+  return normalized.includes('.') ? normalized : '';
+}
+
+function addWatchDomainsFromText(value) {
+  const domains = parseWatchDomains(value);
+  if (!domains.length) return false;
+
+  const known = new Set(state.watchDomains);
+  for (const domain of domains) known.add(domain);
+  state.watchDomains = Array.from(known);
+  renderWatchDomainChips();
+  return true;
+}
+
+function renderWatchDomainChips() {
+  if (!watchDomainChips) return;
+  watchDomainChips.innerHTML = state.watchDomains.map((domain) => `
+    <span class="watch-domain-chip">
+      <span>${escapeHtml(domain)}</span>
+      <button type="button" data-watch-domain-remove="${escapeHtml(domain)}" aria-label="Remove ${escapeHtml(domain)}">x</button>
+    </span>
+  `).join('');
+}
+
+function collectWatchDomains() {
+  if (watchDomainInput?.value.trim()) {
+    addWatchDomainsFromText(watchDomainInput.value);
+    watchDomainInput.value = '';
+  }
+  return [...state.watchDomains];
+}
+
+watchDomainInput?.addEventListener('input', () => {
+  if (!/[,\n\r\t]/.test(watchDomainInput.value)) return;
+  addWatchDomainsFromText(watchDomainInput.value);
+  watchDomainInput.value = '';
+});
+
+watchDomainInput?.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter') return;
+  event.preventDefault();
+  if (addWatchDomainsFromText(watchDomainInput.value)) {
+    watchDomainInput.value = '';
+  }
+});
+
+watchDomainInput?.addEventListener('paste', (event) => {
+  const pasted = event.clipboardData?.getData('text') || '';
+  if (parseWatchDomains(pasted).length < 2) return;
+  event.preventDefault();
+  addWatchDomainsFromText(pasted);
+  watchDomainInput.value = '';
+});
+
+watchDomainChips?.addEventListener('click', (event) => {
+  const button = event.target.closest?.('[data-watch-domain-remove]');
+  const domain = button?.dataset.watchDomainRemove;
+  if (!domain) return;
+  state.watchDomains = state.watchDomains.filter((item) => item !== domain);
+  renderWatchDomainChips();
+  watchDomainInput?.focus();
+});
+
+watchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!getAccessToken()) {
     window.location.assign(buildAuthUrl('login'));
     return;
   }
-  await api('/watches', {
-    method: 'POST',
-    body: JSON.stringify({
-      fqdn: document.getElementById('watchDomain').value,
-    }),
-  });
-  document.getElementById('watchDomain').value = '';
+
+  const domains = collectWatchDomains();
+  if (!domains.length) {
+    watchDomainInput?.focus();
+    return;
+  }
+
+  watchList.innerHTML = `<p class="meta">Adding ${domains.length} watch${domains.length === 1 ? '' : 'es'}...</p>`;
+  const failed = [];
+  for (const fqdn of domains) {
+    try {
+      await api('/watches', {
+        method: 'POST',
+        body: JSON.stringify({ fqdn }),
+      });
+    } catch (error) {
+      failed.push({ fqdn, message: error.message });
+    }
+  }
+
+  state.watchDomains = failed.map((item) => item.fqdn);
+  renderWatchDomainChips();
   await loadWatches();
+  if (failed.length) {
+    watchList.insertAdjacentHTML('afterbegin', `<p class="meta">Could not create: ${escapeHtml(failed.map((item) => item.fqdn).join(', '))}</p>`);
+  }
 });
 
 if (authButton) {

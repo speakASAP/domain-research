@@ -57,8 +57,11 @@
             <h2>Watch a domain</h2>
           </div>
           <form id="watchForm" class="watch-form">
-            <input id="watchDomain" placeholder="example.com" required />
-            <button type="submit">Create watch</button>
+            <div class="watch-domain-entry">
+              <div id="watchDomainChips" class="watch-domain-chips" aria-live="polite"></div>
+              <input id="watchDomain" placeholder="example.com, example.org" autocomplete="off" />
+            </div>
+            <button type="submit">Create watches</button>
           </form>
           <div id="watchList" class="watch-list"></div>
         </section>

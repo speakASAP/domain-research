@@ -15,12 +15,15 @@ describe('AiClient', () => {
   });
 
   it('extracts names from JSON arrays', async () => {
+    let request: RequestInit | undefined;
     global.fetch = jest.fn(async () => ({
       ok: true,
       json: async () => ({ text: '["brandpilot","domainflow"]' }),
     })) as jest.Mock;
 
     await expect(new AiClient().suggestDomainNames('test', 5)).resolves.toEqual(['brandpilot', 'domainflow']);
+    request = (global.fetch as jest.Mock).mock.calls[0][1];
+    expect(JSON.parse(String(request?.body))).toMatchObject({ model_tier: 'smart' });
   });
 
   it('extracts second-level names from object values returned by small models', async () => {
