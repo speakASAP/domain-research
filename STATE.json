@@ -1,6 +1,6 @@
 {
   "project": "domain-research",
-  "status": "bootstrap_validated_not_deployed",
+  "status": "production_deployed",
   "currentGoal": "Goal 1: Bootstrap Service Foundation",
   "currentTask": "TASK-001",
   "assumptions": {
@@ -29,7 +29,9 @@
     "vaultSecrets": "created",
     "database": "created",
     "migrationPolicy": "kubernetes-job",
-    "deployed": false
+    "deployed": true,
+    "productionHealth": "passed",
+    "publicUrl": "https://domain-research.alfares.cz"
   },
   "updatedAt": "2026-06-26T00:00:00Z"
 }

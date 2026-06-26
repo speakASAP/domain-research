@@ -101,7 +101,7 @@ spec:
             - secretRef:
                 name: ${SERVICE_NAME}-secret
 YAML
-kubectl wait --for=condition=complete "job/${MIGRATION_JOB}" -n "$NAMESPACE" --timeout=180s || {
+kubectl wait --for=condition=complete "job/${MIGRATION_JOB}" -n "$NAMESPACE" --timeout=480s || {
   kubectl logs "job/${MIGRATION_JOB}" -n "$NAMESPACE" || true
   exit 1
 }

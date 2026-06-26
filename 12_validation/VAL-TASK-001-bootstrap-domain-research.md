@@ -39,14 +39,23 @@ for f in k8s/configmap.yaml k8s/external-secret.yaml k8s/deployment.yaml k8s/ser
 Vault secret path and Postgres readiness:
 # result: secret/prod/domain-research exists with required keys, values not printed
 # result: Postgres database and role domain_research exist
+
+Production deploy:
+# result: image localhost:5000/domain-research:b46ed5e built and pushed
+# result: migration Job completed with "domain-research migrations applied"
+# result: deployment/domain-research rolled out
+# result: internal pod /health returned HTTP 200
+# result: public https://domain-research.alfares.cz/health returned HTTP 200
+# result: public UI root returned HTTP 200
+# result: POST /api/domain-suggestions returned HTTP 201
 ```
 
 Residual validation debt:
 
 - `npm install` reported 46 npm audit vulnerabilities inherited through the selected Nest/toolchain dependency set.
-- Live deployment was not run at this validation point.
 - Real AI/notification service-token issuance remains pending.
 
 ## Known Blockers
 
-- `[MISSING: live deployment approval after readiness]`
+- `[MISSING: hosted Auth roles/client registration]`
+- `[MISSING: real AI/notification service-token issuer contract]`
