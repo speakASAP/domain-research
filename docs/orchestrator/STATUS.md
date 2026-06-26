@@ -197,5 +197,6 @@ Validation:
 ## 2026-06-26 TASK-006 Unauthenticated Watch Registration Prompt
 
 - Source fix: unauthenticated `Create watches` submissions now collect entered watch domains, show a popup explaining registration/sign-in is required, and redirect to hosted Auth registration only after OK.
+- Cache fix: `public/index.html` now cache-busts `/app.js` for this UX change so existing browser sessions do not keep the old immediate-redirect handler.
 - UX guard: empty watch submissions focus the input and do not redirect.
 - Validation: `node --check public/app.js`, `git diff --check`, `npm run build`, `npm test` (6 suites / 15 tests), `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed before deploy.
