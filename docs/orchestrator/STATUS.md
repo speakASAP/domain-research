@@ -166,4 +166,4 @@ Implemented in this pass:
 - Scheduler now dedupes lifecycle notifications and keeps availability notification gated on a fresh provider check.
 - Expiry recheck CronJob cadence changed to every 5 minutes so per-watch `nextCheckAt` can hit hourly/final drop windows.
 
-Validation: pending command execution.
+Validation: `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed. Deployment pending.
