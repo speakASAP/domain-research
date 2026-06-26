@@ -1,7 +1,7 @@
 # Notifications Machine Auth Lane
 
 Date: 2026-06-26
-Status: approval-gated
+Status: closed
 
 ## Intent Preservation Chain
 
@@ -19,26 +19,23 @@ Status: approval-gated
 
 - `domain-research` production deployment is healthy after AI service-token sync.
 - `AI_SERVICE_TOKEN` is no longer placeholder debt; AI accepted the service token with HTTP 200.
-- `NOTIFICATION_SERVICE_TOKEN` remains a placeholder in `secret/prod/domain-research`.
-- From `deployment/domain-research`, `GET http://notifications-microservice.statex-apps.svc.cluster.local:3368/admin/stats` with the current `NOTIFICATION_SERVICE_TOKEN` returned HTTP 401.
-- Read-only inspection found no current Auth API, CLI, seed, or notifications guard path that issues/accepts a `domain-research` machine token without either copying the shared notifications `SERVICE_TOKEN` or changing the notifications machine-auth contract.
+- `NOTIFICATION_SERVICE_TOKEN` is now sourced from `secret/prod/notifications-microservice` property `SERVICE_TOKEN`, matching the RunLayer pattern.
+- From `deployment/domain-research`, read-only notifications endpoints `/admin/stats` and `/admin/params` returned HTTP 200 with the runtime `NOTIFICATION_SERVICE_TOKEN`.
+- No notification send/test-send route was called during validation.
 
-## Approval Gate
+## Resolution
 
-Production implementation requires explicit owner approval because it changes cross-service security behavior. Do not implement or deploy until the owner approves one contract:
+Owner approval was granted to follow the existing Alfares notifications pattern used by RunLayer and Monitoring:
 
-1. Preferred: add canonical machine auth to `notifications-microservice` using:
-   - `x-internal-service-token: <runtime-secret-token>`
-   - `x-service-name: domain-research`
-   - `TRUSTED_INTERNAL_SERVICES` or equivalent allowlist.
-2. Alternative: implement an Auth-owned service-token issuer and validator contract, then update notifications to accept Auth-validated service actors.
-3. Rejected without new approval: copying the shared notifications `SERVICE_TOKEN` into `domain-research`.
+- `Authorization: Bearer <NOTIFICATION_SERVICE_TOKEN>`
+- `k8s/external-secret.yaml` maps `NOTIFICATION_SERVICE_TOKEN` from `secret/prod/notifications-microservice` property `SERVICE_TOKEN`.
+- No `x-internal-service-token` or `x-service-name` headers were introduced because they are not the established notifications consumer pattern in the inspected services.
 
 ## Parallel Execution
 
 ### Lane A: Notifications Consumer Contract
 
-- Status: approval-gated.
+- Status: closed by approved RunLayer-compatible token mapping; no notifications code change required.
 - Owner role: Notifications worker.
 - Objective: add a `domain-research` machine actor path that is separate from user JWT/RBAC.
 - Allowed files after approval: `notifications-microservice/src/auth/**`, focused tests, `notifications-microservice/k8s/external-secret.yaml`, docs.
@@ -48,7 +45,7 @@ Production implementation requires explicit owner approval because it changes cr
 
 ### Lane B: Domain Research Runtime Wiring
 
-- Status: waits for Lane A contract.
+- Status: closed.
 - Owner role: Domain Research worker.
 - Objective: send the accepted notifications credential/header shape from `NotificationClient`.
 - Allowed files after Lane A: `domain-research/src/integrations/notification.client.ts`, `domain-research/k8s/**`, docs.
@@ -58,7 +55,7 @@ Production implementation requires explicit owner approval because it changes cr
 
 ### Lane C: Secret Operations
 
-- Status: waits for Lane A contract.
+- Status: closed.
 - Owner role: Ops worker.
 - Objective: create dedicated Vault values and sync Kubernetes secrets without printing secret values.
 - Allowed systems after approval: Vault keys under approved service paths, ExternalSecret metadata, deployment restarts.
@@ -70,7 +67,7 @@ Production implementation requires explicit owner approval because it changes cr
 - Integration owner: original Domain Research orchestrator thread.
 - Validation owner: Validation worker.
 - Merge order: Lane A, Lane C, Lane B, final evidence docs.
-- Final gate: `domain-research` health HTTP 200, AI auth smoke 200, notifications read-only auth smoke 200, no secret values in docs/logs, repo clean and pushed.
+- Final gate: `domain-research` health HTTP 200, AI auth smoke 200, AI agent smoke without `error_code`, notifications read-only auth smoke 200, no secret values in docs/logs, repo clean and pushed.
 
 ## Agent-Ready Prompt
 

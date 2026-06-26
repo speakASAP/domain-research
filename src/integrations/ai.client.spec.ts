@@ -1,0 +1,40 @@
+import { AiClient } from './ai.client';
+
+describe('AiClient', () => {
+  const originalFetch = global.fetch;
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv, AI_SERVICE_URL: 'http://ai-service', AI_SERVICE_TOKEN: 'token' };
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    process.env = originalEnv;
+    jest.restoreAllMocks();
+  });
+
+  it('extracts names from JSON arrays', async () => {
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({ text: '["brandpilot","domainflow"]' }),
+    })) as jest.Mock;
+
+    await expect(new AiClient().suggestDomainNames('test', 5)).resolves.toEqual(['brandpilot', 'domainflow']);
+  });
+
+  it('extracts second-level names from object values returned by small models', async () => {
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        text: '{"domain1":"privacyfriendlycalendar.com","domain2":"reminder-hub.net","note":"ignored phrase"}',
+      }),
+    })) as jest.Mock;
+
+    await expect(new AiClient().suggestDomainNames('test', 5)).resolves.toEqual([
+      'privacyfriendlycalendar',
+      'reminder-hub',
+      'ignored',
+    ]);
+  });
+});
