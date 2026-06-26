@@ -118,3 +118,30 @@ kubectl -n statex-apps get externalsecret domain-research-secret
 curl -k https://domain-research.alfares.cz/health
 # HTTP 200
 ```
+
+## Final Deploy Evidence
+
+Date: 2026-06-26
+
+```bash
+git log -1 --oneline
+# bb68f2d chore: finalize service integrations
+
+./scripts/deploy.sh
+# validation, image build/push, ExternalSecret sync, migration Job, rollout, and health check passed
+# deployed image: localhost:5000/domain-research:bb68f2d
+
+kubectl -n statex-apps get deploy domain-research -o wide
+# READY 1/1, image localhost:5000/domain-research:bb68f2d
+
+kubectl -n statex-apps exec -i deploy/domain-research -- node -
+# AI /ai/complete with agent_slug=domain-suggestion -> HTTP 200, error_code=null
+# Notifications /admin/stats -> HTTP 200
+# Notifications /admin/params -> HTTP 200
+
+curl -k https://domain-research.alfares.cz/health
+# HTTP 200
+
+curl -k -X POST https://domain-research.alfares.cz/api/domain-suggestions ...
+# HTTP 201-equivalent Nest response, status=completed, candidateCount=3
+```
