@@ -30,7 +30,8 @@ Completed:
 
 Pending:
 
-- Hosted Auth role/client registration.
+- Paid domain provider approval and API keys.
+- Owner-approved dedicated notifications machine-auth contract if the shared notifications token must be replaced.
 
 
 Auth integration update:
@@ -38,7 +39,8 @@ Auth integration update:
 - Watch endpoints now require Auth bearer tokens validated through `auth-microservice` `/auth/validate`.
 - New watches bind `userId` to the Auth user id and `notificationEmail` to the registered Auth email.
 - The browser watch form no longer accepts manual notification email input and forwards the Auth bearer token from hosted Auth handoff.
-- Remaining Auth work: `[MISSING: final hosted Auth role/client registration]`.
+- Hosted Auth callback origin `https://domain-research.alfares.cz/` is accepted by live `https://auth.alfares.cz/auth/validate-return-url`.
+- Auth production RBAC now registers `domain-research` plus `app:domain-research:user` and `app:domain-research:admin`.
 - Validation: `npm run build` passed; `npm test` passed with 4 suites / 9 tests; `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed.
 
 ## Production Deploy Evidence
@@ -167,3 +169,10 @@ Implemented in this pass:
 - Expiry recheck CronJob cadence changed to every 5 minutes so per-watch `nextCheckAt` can hit hourly/final drop windows.
 
 Validation: `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed. Production deploy passed with image `localhost:5000/domain-research:d703edd`; public `/health` returned HTTP 200; expiry CronJob schedule is `*/5 * * * *`.
+
+## 2026-06-26 Auth Registration Closeout
+
+- Source fix: added `domain-research` to `auth-microservice/scripts/seed-rbac.ts` so future RBAC seeds keep the application registration durable in source control.
+- Live Auth verification: `curl -isk "https://auth.alfares.cz/auth/validate-return-url?return_url=https%3A%2F%2Fdomain-research.alfares.cz%2F"` returned HTTP 200 with `{"valid":true,"return_url":"https://domain-research.alfares.cz/"}`.
+- Live Auth pod DB query after the additive seed confirmed `app=1`, `user_role=1`, and `admin_role=1` for `domain-research`.
+- Conclusion: the hosted Auth lane is complete; no autonomous implementation task remains until paid registrar/provider approval or a dedicated notifications machine-auth contract is approved.

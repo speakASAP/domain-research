@@ -2,7 +2,7 @@
 
 ## TASK-001 Bootstrap Domain Research
 
-Status: in_progress
+Status: completed
 
 Trace:
 
@@ -26,15 +26,26 @@ Acceptance:
 
 ## TASK-002 Add Database Migrations
 
-Status: pending
+Status: completed
 
-Blocked by `[MISSING: migration policy and live DB setup]`.
+Acceptance:
+
+- Explicit migration script exists at `scripts/migrate.js`.
+- Deployment runs migrations through a Kubernetes Job.
+- Production database and role exist.
+- Validation gates and production deployment evidence are recorded in `docs/orchestrator/STATUS.md`.
 
 ## TASK-003 Add Hosted Auth
 
-Status: in_progress
+Status: completed
 
-User-owned watch API integration is implemented with Auth `/auth/validate`. Remaining blocker: `[MISSING: role contract and client registration]`.
+Acceptance:
+
+- Watch endpoints validate Auth bearer tokens through `auth-microservice` `/auth/validate`.
+- Watch ownership binds `userId` and registered Auth email.
+- Browser login flow uses hosted Auth with `client_id=domain-research`, callback fragment handling, and state validation.
+- Live Auth return-url validation passes for `https://domain-research.alfares.cz/`.
+- Auth RBAC registration includes `domain-research` plus `app:domain-research:user` and `app:domain-research:admin`.
 
 ## TASK-004 Expiring Domain Drop Tracking
 

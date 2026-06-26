@@ -1,8 +1,11 @@
 {
   "project": "domain-research",
-  "status": "production_deployed",
-  "currentGoal": "Goal 6: Expiring Domain Drop Tracking",
-  "currentTask": "TASK-004",
+  "status": "blocked_external_approvals",
+  "currentGoal": "Goal 4: Provider Adapter Layer",
+  "currentTask": "No active autonomous task",
+  "next_focus": "No autonomous task remains. Wait for paid registrar/provider approval or an owner-approved dedicated notifications machine-auth contract before new implementation.",
+  "tasks_active": 0,
+  "open_task_ids": [],
   "assumptions": {
     "domain": "domain-research.alfares.cz",
     "port": 4860,
@@ -11,15 +14,10 @@
     "vaultPath": "secret/prod/domain-research"
   },
   "blockers": [
-    "[MISSING: final Auth roles and hosted Auth client registration]",
     "[MISSING: paid domain provider approval and API keys]",
-    "[MISSING: real AI/notification service-token issuer contract]"
+    "[MISSING: owner-approved dedicated notifications machine-auth contract]"
   ],
-  "parallelReady": [
-    "IPS/docs lane",
-    "service skeleton lane",
-    "ops manifests lane"
-  ],
+  "parallelReady": [],
   "validation": {
     "build": "passed",
     "test": "passed",
@@ -31,7 +29,9 @@
     "migrationPolicy": "kubernetes-job",
     "deployed": true,
     "productionHealth": "passed",
-    "publicUrl": "https://domain-research.alfares.cz"
+    "publicUrl": "https://domain-research.alfares.cz",
+    "hostedAuthReturnUrl": "passed",
+    "authRbacRegistration": "passed"
   },
-  "updatedAt": "2026-06-26T16:16:31Z"
+  "updatedAt": "2026-06-26T17:05:00Z"
 }
