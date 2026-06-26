@@ -185,10 +185,11 @@ Owner-approved change:
 - Watch submission creates all pending chip domains and keeps failed domains visible for correction.
 - Domain suggestion AI requests now default to `model_tier=smart`, with `AI_MODEL_TIER` still available as the override.
 - Production ConfigMap now sets `AI_MODEL_TIER: "smart"` instead of `"cheap"`.
+- Domain suggestion fallback now removes common filler words and limits generated names to short brandable candidates instead of concatenating whole descriptions.
 
 Validation:
 
 - `node --check public/app.js` passed.
 - `git diff --check` passed.
 - `npm run build` passed.
-- `npm test` passed with 6 suites / 14 tests.
+- `npm test` passed with 6 suites / 15 tests.

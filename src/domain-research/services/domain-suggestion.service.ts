@@ -7,6 +7,18 @@ import { DomainSuggestionJob } from '../entities/domain-suggestion-job.entity';
 import { AiClient } from '../../integrations/ai.client';
 
 const SUPPORTED_TLDS = ['com', 'cz'];
+const SUGGESTION_STOP_WORDS = new Set([
+  'and',
+  'for',
+  'from',
+  'service',
+  'services',
+  'that',
+  'the',
+  'this',
+  'tool',
+  'with',
+]);
 
 @Injectable()
 export class DomainSuggestionService {
@@ -65,20 +77,23 @@ export class DomainSuggestionService {
       .normalize('NFKD')
       .replace(/[^\w\s-]/g, ' ')
       .split(/\s+/)
-      .filter((part) => part.length > 2 && part.length < 16)
-      .slice(0, 8);
+      .map((part) => part.replace(/[^a-z0-9-]/g, ''))
+      .filter((part) => part.length > 1 && part.length < 14 && !SUGGESTION_STOP_WORDS.has(part))
+      .slice(0, 4);
+    const primary = seed[0] || 'domain';
+    const secondary = seed.find((part) => part !== primary) || 'base';
     const heuristic = [
-      seed.join(''),
-      `${seed[0] || 'domain'}hub`,
-      `${seed[0] || 'domain'}ly`,
-      `get${seed[0] || 'domain'}`,
-      `${seed[0] || 'domain'}pilot`,
-      `${seed[0] || 'domain'}base`,
-      `${seed[0] || 'domain'}flow`,
+      `${primary}${secondary}`,
+      `${primary}hub`,
+      `${primary}ly`,
+      `get${primary}`,
+      `${primary}pilot`,
+      `${secondary}base`,
+      `${secondary}flow`,
     ];
     return Array.from(new Set([...aiNames, ...heuristic]))
       .map((name) => name.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, ''))
-      .filter((name) => name.length >= 3 && name.length <= 63)
+      .filter((name) => name.length >= 3 && name.length <= 24)
       .slice(0, count);
   }
 }

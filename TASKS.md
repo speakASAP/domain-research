@@ -88,3 +88,4 @@ Acceptance:
 - Pasted domain blocks can create multiple pending watch chips at once.
 - Submitting creates watches for all pending chips and keeps failed domains visible.
 - AI suggestions use the `smart` tier by default and production config sets `AI_MODEL_TIER=smart`.
+- Heuristic fallback no longer turns whole business descriptions into long domain candidates.

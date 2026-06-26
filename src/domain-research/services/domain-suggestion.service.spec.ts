@@ -42,4 +42,29 @@ describe('DomainSuggestionService heuristics', () => {
     expect(result.tlds).toEqual(['com', 'cz']);
     expect(new Set(saved.map((candidate) => candidate.tld))).toEqual(new Set(['com', 'cz']));
   });
+
+  it('does not turn whole descriptions into long fallback domains', async () => {
+    const saved: any[] = [];
+    const jobs: any = {
+      create: (input: any) => input,
+      save: async (input: any) => ({ id: 'job-1', ...input }),
+      findOne: async () => ({ id: 'job-1', candidates: saved }),
+    };
+    const candidates: any = {
+      create: (input: any) => input,
+      save: async (input: any[]) => saved.push(...input),
+    };
+    const ai: any = { suggestDomainNames: async () => [] };
+    const service = new DomainSuggestionService(jobs, candidates, ai);
+
+    await service.createSuggestion({
+      description: 'AI service for restaurant booking and customer reminders',
+      tlds: ['com'],
+      count: 5,
+    });
+
+    expect(saved.map((candidate) => candidate.sld)).not.toContain('serviceforrestaurantbookingandcustomerreminders');
+    expect(saved.every((candidate) => candidate.sld.length <= 24)).toBe(true);
+    expect(saved.map((candidate) => candidate.fqdn)).toContain('airestaurant.com');
+  });
 });
