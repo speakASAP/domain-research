@@ -1,5 +1,6 @@
 const state = {
   candidates: [],
+  selectedDomains: {},
   watchDomains: [],
   voice: {
     active: false,
@@ -14,12 +15,17 @@ const STORAGE_ACCESS = 'domain_research_access';
 const STORAGE_REFRESH = 'domain_research_refresh';
 const STORAGE_EMAIL = 'domain_research_email';
 const STORAGE_STATE = 'domain_research_auth_state';
+const STORAGE_DRAFT = 'domain_research_session_draft';
+const DRAFT_VERSION = 1;
+const MAX_DRAFT_CANDIDATES = 100;
 const LEGACY_ACCESS_KEYS = ['auth_profile_access', 'auth_admin_access'];
 
 const healthStatus = document.getElementById('healthStatus');
 const candidateList = document.getElementById('candidateList');
 const watchList = document.getElementById('watchList');
 const descriptionInput = document.getElementById('description');
+const tldsInput = document.getElementById('tlds');
+const countInput = document.getElementById('count');
 const voiceButton = document.getElementById('voiceDescription');
 const voiceButtonText = document.getElementById('voiceButtonText');
 const voiceStatus = document.getElementById('voiceStatus');
@@ -37,6 +43,73 @@ function setTokens(accessToken, refreshToken, email) {
   if (accessToken) sessionStorage.setItem(STORAGE_ACCESS, accessToken);
   if (refreshToken) sessionStorage.setItem(STORAGE_REFRESH, refreshToken);
   if (email) sessionStorage.setItem(STORAGE_EMAIL, email);
+}
+
+function saveSessionDraft() {
+  try {
+    sessionStorage.setItem(STORAGE_DRAFT, JSON.stringify({
+      version: DRAFT_VERSION,
+      savedAt: new Date().toISOString(),
+      description: descriptionInput?.value || '',
+      tlds: tldsInput?.value || '',
+      count: countInput?.value || '',
+      candidates: state.candidates.slice(0, MAX_DRAFT_CANDIDATES),
+      selectedDomains: state.selectedDomains,
+      watchDomains: state.watchDomains,
+      watchDomainInput: watchDomainInput?.value || '',
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function restoreSessionDraft() {
+  let draft = null;
+  try {
+    draft = JSON.parse(sessionStorage.getItem(STORAGE_DRAFT) || 'null');
+  } catch {
+    return;
+  }
+  if (!draft || draft.version !== DRAFT_VERSION) return;
+
+  if (descriptionInput) descriptionInput.value = draft.description || '';
+  if (tldsInput && draft.tlds) tldsInput.value = draft.tlds;
+  if (countInput && draft.count) countInput.value = draft.count;
+  if (watchDomainInput) watchDomainInput.value = draft.watchDomainInput || '';
+  state.candidates = Array.isArray(draft.candidates) ? draft.candidates : [];
+  state.selectedDomains = isPlainObject(draft.selectedDomains) ? draft.selectedDomains : {};
+  state.watchDomains = Array.isArray(draft.watchDomains) ? draft.watchDomains : [];
+  renderCandidates();
+  renderWatchDomainChips();
+}
+
+function hasUnsavedDraftInput() {
+  return Boolean(
+    (descriptionInput?.value || '').trim() ||
+    (watchDomainInput?.value || '').trim() ||
+    state.candidates.length ||
+    state.watchDomains.length
+  );
+}
+
+function redirectToAuth(mode = 'login') {
+  const saved = saveSessionDraft();
+  if (!saved && hasUnsavedDraftInput()) {
+    const shouldContinue = window.confirm(
+      'Signing in will leave this page, and this browser did not allow Domain Research to save your current inputs. Copy them before continuing if you need them. Continue to sign in?'
+    );
+    if (!shouldContinue) return;
+  }
+  window.location.assign(buildAuthUrl(mode));
+}
+
+function autosaveSessionDraft() {
+  saveSessionDraft();
+}
+
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
 function consumeAuthFragment() {
@@ -216,16 +289,30 @@ function joinDictationText(currentText, nextText) {
 }
 
 function renderCandidates() {
-  candidateList.innerHTML = state.candidates.map((candidate) => `
-    <label class="candidate">
-      <input type="checkbox" value="${escapeHtml(candidate.fqdn)}" checked />
-      <span>
-        <span class="domain">${escapeHtml(candidate.fqdn)}</span>
-        <span class="meta">score ${Math.round(candidate.score || 0)} · ${escapeHtml(candidate.source || 'heuristic')}</span>
-      </span>
-      <span class="badge ${candidate.availability === 'registered' ? 'warning' : ''}">${escapeHtml(candidate.availability || 'unchecked')}</span>
-    </label>
-  `).join('');
+  candidateList.innerHTML = state.candidates.map((candidate) => {
+    const fqdn = String(candidate.fqdn || '');
+    const checked = state.selectedDomains[fqdn] !== false ? 'checked' : '';
+    return `
+      <label class="candidate">
+        <input type="checkbox" value="${escapeHtml(fqdn)}" ${checked} />
+        <span>
+          <span class="domain">${escapeHtml(fqdn)}</span>
+          <span class="meta">score ${Math.round(candidate.score || 0)} · ${escapeHtml(candidate.source || 'heuristic')}</span>
+        </span>
+        <span class="badge ${candidate.availability === 'registered' ? 'warning' : ''}">${escapeHtml(candidate.availability || 'unchecked')}</span>
+      </label>
+    `;
+  }).join('');
+}
+
+function captureCandidateSelections() {
+  state.selectedDomains = Object.fromEntries(
+    Array.from(candidateList.querySelectorAll('input[type="checkbox"]')).map((input) => [input.value, input.checked])
+  );
+}
+
+function selectAllCandidates(candidates) {
+  state.selectedDomains = Object.fromEntries(candidates.map((candidate) => [String(candidate.fqdn || ''), true]));
 }
 
 document.getElementById('suggestionForm').addEventListener('submit', async (event) => {
@@ -238,7 +325,9 @@ document.getElementById('suggestionForm').addEventListener('submit', async (even
   };
   const job = await api('/domain-suggestions', { method: 'POST', body: JSON.stringify(payload) });
   state.candidates = job.candidates || [];
+  selectAllCandidates(state.candidates);
   renderCandidates();
+  saveSessionDraft();
 });
 
 document.getElementById('checkSelected').addEventListener('click', async () => {
@@ -247,7 +336,9 @@ document.getElementById('checkSelected').addEventListener('click', async () => {
   const result = await api('/availability/check', { method: 'POST', body: JSON.stringify({ domains }) });
   const byDomain = new Map((result.results || []).map((item) => [item.fqdn, item]));
   state.candidates = state.candidates.map((candidate) => ({ ...candidate, ...(byDomain.get(candidate.fqdn) || {}) }));
+  captureCandidateSelections();
   renderCandidates();
+  saveSessionDraft();
 });
 
 function parseWatchDomains(value) {
@@ -276,6 +367,7 @@ function addWatchDomainsFromText(value) {
   for (const domain of domains) known.add(domain);
   state.watchDomains = Array.from(known);
   renderWatchDomainChips();
+  saveSessionDraft();
   return true;
 }
 
@@ -325,13 +417,14 @@ watchDomainChips?.addEventListener('click', (event) => {
   if (!domain) return;
   state.watchDomains = state.watchDomains.filter((item) => item !== domain);
   renderWatchDomainChips();
+  saveSessionDraft();
   watchDomainInput?.focus();
 });
 
 watchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!getAccessToken()) {
-    window.location.assign(buildAuthUrl('login'));
+    redirectToAuth('login');
     return;
   }
 
@@ -356,10 +449,22 @@ watchForm.addEventListener('submit', async (event) => {
 
   state.watchDomains = failed.map((item) => item.fqdn);
   renderWatchDomainChips();
+  saveSessionDraft();
   await loadWatches();
   if (failed.length) {
     watchList.insertAdjacentHTML('afterbegin', `<p class="meta">Could not create: ${escapeHtml(failed.map((item) => item.fqdn).join(', '))}</p>`);
   }
+});
+
+[descriptionInput, tldsInput, countInput, watchDomainInput].forEach((input) => {
+  input?.addEventListener('input', autosaveSessionDraft);
+  input?.addEventListener('change', autosaveSessionDraft);
+});
+
+candidateList.addEventListener('change', (event) => {
+  if (!event.target.matches('input[type="checkbox"]')) return;
+  captureCandidateSelections();
+  saveSessionDraft();
 });
 
 if (authButton) {
@@ -372,7 +477,7 @@ if (authButton) {
       loadWatches().catch(() => undefined);
       return;
     }
-    window.location.assign(buildAuthUrl('login'));
+    redirectToAuth('login');
   });
 }
 
@@ -438,6 +543,7 @@ try {
 } catch (error) {
   watchList.innerHTML = `<p class="meta">${escapeHtml(error.message)}</p>`;
 }
+restoreSessionDraft();
 updateAuthStatus();
 setupVoiceInput();
 checkHealth();
