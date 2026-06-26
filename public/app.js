@@ -328,9 +328,9 @@ document.getElementById('suggestionForm').addEventListener('submit', async (even
   event.preventDefault();
   candidateList.innerHTML = '<p class="meta">Generating candidates...</p>';
   const payload = {
-    description: document.getElementById('description').value,
-    tlds: document.getElementById('tlds').value.split(',').map((item) => item.trim()).filter(Boolean),
-    count: Number(document.getElementById('count').value || 12),
+    description: descriptionInput?.value || '',
+    tlds: (tldsInput?.value || '').split(',').map((item) => item.trim()).filter(Boolean),
+    count: Number(countInput?.value || 12),
   };
   const job = await api('/domain-suggestions', { method: 'POST', body: JSON.stringify(payload) });
   state.candidates = job.candidates || [];
