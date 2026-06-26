@@ -89,3 +89,24 @@ Acceptance:
 - Submitting creates watches for all pending chips and keeps failed domains visible.
 - AI suggestions use the `smart` tier by default and production config sets `AI_MODEL_TIER=smart`.
 - Heuristic fallback no longer turns whole business descriptions into long domain candidates.
+
+## TASK-006 Unauthenticated Watch Registration Prompt
+
+Status: completed
+
+Trace:
+
+- Vision: `01_vision/VISION.md`
+- Goal Impact: `[MISSING: dedicated goal-impact document for owner-requested unauthenticated watch UX polish]`
+- System: `04_systems/SYS-001-domain-research-service.md`
+- Feature: `10_features/FEAT-001-domain-suggestion-and-watch.md`
+- Execution Plan: `[MISSING: dedicated execution plan document for owner-requested unauthenticated watch UX polish]`
+- Coding Prompt: owner request on 2026-06-26 to warn unauthenticated users before redirecting from Watch to registration.
+- Validation: `node --check public/app.js`, `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, `npm run gate:deployment`, live browser check, production deploy.
+
+Acceptance:
+
+- Empty watch submission focuses the watch input instead of redirecting.
+- Unauthenticated watch submission with entered domains shows a popup explaining that registration/sign-in is required.
+- Pressing OK sends the user to hosted Auth registration instead of immediately redirecting to login.
+- Existing draft persistence remains in place for entered domains before Auth redirect.

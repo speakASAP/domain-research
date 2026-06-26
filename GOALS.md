@@ -44,4 +44,6 @@ Warn users before watched domains are likely to leave post-expiration protection
 
 Status: completed
 
+Unauthenticated watch submissions now explain that registration is required before redirecting to hosted Auth registration.
+
 Allow users to add watched domains in bulk from comma-separated, Enter-confirmed, or pasted domain blocks, and route domain suggestion calls through the smarter AI tier instead of the cheap tier.

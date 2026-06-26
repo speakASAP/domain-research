@@ -160,6 +160,22 @@ function redirectToAuth(mode = 'login') {
   window.location.assign(buildAuthUrl(mode));
 }
 
+function promptForWatchRegistration() {
+  const saved = saveSessionDraft();
+  window.alert(
+    'You are not signed in yet. To create domain watches and keep these domains linked to you, please create an account or sign in. After you press OK, registration will open.'
+  );
+
+  if (!saved && hasUnsavedDraftInput()) {
+    const shouldContinue = window.confirm(
+      'This browser did not allow Domain Research to save your current inputs. Copy them before continuing if you need them. Continue to registration?'
+    );
+    if (!shouldContinue) return;
+  }
+
+  window.location.assign(buildAuthUrl('register'));
+}
+
 function autosaveSessionDraft() {
   saveSessionDraft();
 }
@@ -479,14 +495,14 @@ watchDomainChips?.addEventListener('click', (event) => {
 
 watchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (!getAccessToken()) {
-    redirectToAuth('login');
-    return;
-  }
-
   const domains = collectWatchDomains();
   if (!domains.length) {
     watchDomainInput?.focus();
+    return;
+  }
+
+  if (!getAccessToken()) {
+    promptForWatchRegistration();
     return;
   }
 
