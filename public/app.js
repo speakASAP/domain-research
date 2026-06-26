@@ -18,6 +18,7 @@ const STORAGE_STATE = 'domain_research_auth_state';
 const STORAGE_DRAFT = 'domain_research_session_draft';
 const DRAFT_VERSION = 1;
 const MAX_DRAFT_CANDIDATES = 100;
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 const LEGACY_ACCESS_KEYS = ['auth_profile_access', 'auth_admin_access'];
 
 const healthStatus = document.getElementById('healthStatus');
@@ -48,7 +49,7 @@ function setTokens(accessToken, refreshToken, email) {
 function saveSessionDraft() {
   try {
     state.selectedDomains = currentCandidateSelections();
-    sessionStorage.setItem(STORAGE_DRAFT, JSON.stringify({
+    const draft = JSON.stringify({
       version: DRAFT_VERSION,
       savedAt: new Date().toISOString(),
       description: descriptionInput?.value || '',
@@ -58,8 +59,8 @@ function saveSessionDraft() {
       selectedDomains: state.selectedDomains,
       watchDomains: state.watchDomains,
       watchDomainInput: watchDomainInput?.value || '',
-    }));
-    return true;
+    });
+    return writeDraftStorage(draft);
   } catch {
     return false;
   }
@@ -73,14 +74,60 @@ function currentCandidateSelections() {
   return selectedDomains;
 }
 
+function writeDraftStorage(value) {
+  let saved = false;
+  try {
+    localStorage.setItem(STORAGE_DRAFT, value);
+    saved = true;
+  } catch {
+    // Browser storage may be unavailable in private or locked-down contexts.
+  }
+  try {
+    sessionStorage.setItem(STORAGE_DRAFT, value);
+    saved = true;
+  } catch {
+    // sessionStorage is only a fallback for same-tab redirects.
+  }
+  return saved;
+}
+
+function readDraftStorage() {
+  try {
+    return localStorage.getItem(STORAGE_DRAFT) || sessionStorage.getItem(STORAGE_DRAFT) || '';
+  } catch {
+    try {
+      return sessionStorage.getItem(STORAGE_DRAFT) || '';
+    } catch {
+      return '';
+    }
+  }
+}
+
+function clearDraftStorage() {
+  try {
+    localStorage.removeItem(STORAGE_DRAFT);
+  } catch {
+    // ignore unavailable storage
+  }
+  try {
+    sessionStorage.removeItem(STORAGE_DRAFT);
+  } catch {
+    // ignore unavailable storage
+  }
+}
+
 function restoreSessionDraft() {
   let draft = null;
   try {
-    draft = JSON.parse(sessionStorage.getItem(STORAGE_DRAFT) || 'null');
+    draft = JSON.parse(readDraftStorage() || 'null');
   } catch {
     return;
   }
   if (!draft || draft.version !== DRAFT_VERSION) return;
+  if (draft.savedAt && Date.now() - Date.parse(draft.savedAt) > DRAFT_TTL_MS) {
+    clearDraftStorage();
+    return;
+  }
 
   if (descriptionInput) descriptionInput.value = draft.description || '';
   if (tldsInput && draft.tlds) tldsInput.value = draft.tlds;
