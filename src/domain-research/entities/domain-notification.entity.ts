@@ -6,7 +6,7 @@ export class DomainNotification {
   id!: string;
 
   @Index()
-  @Column({ type: 'uuid' })
+  @Column({ name: 'watch_id', type: 'uuid' })
   watchId!: string;
 
   @Column({ type: 'varchar', length: 64 })
@@ -15,7 +15,7 @@ export class DomainNotification {
   @Column({ type: 'varchar', length: 32, default: 'email' })
   channel!: string;
 
-  @Column({ type: 'varchar', length: 320, nullable: true })
+  @Column({ name: 'recipient_ref', type: 'varchar', length: 320, nullable: true })
   recipientRef?: string | null;
 
   @Column({ type: 'varchar', length: 32, default: 'pending' })
@@ -24,6 +24,6 @@ export class DomainNotification {
   @Column({ type: 'text', nullable: true })
   error?: string | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 }

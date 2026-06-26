@@ -9,6 +9,7 @@
     "start": "node dist/main",
     "start:dev": "nest start --watch",
     "test": "jest --runInBand",
+    "migrate": "node scripts/migrate.js",
     "test:watch": "jest --watch",
     "docs:audit": "python3 scripts/strict_doc_audit.py --root .",
     "gate:pre-coding": "python3 scripts/pre_coding_gate.py --root .",

@@ -52,12 +52,70 @@ deploy_timing_phase_end "Push image"
 deploy_timing_phase_start "Apply Kubernetes manifests"
 kubectl apply -f "$PROJECT_ROOT/k8s/configmap.yaml" -n "$NAMESPACE"
 kubectl apply -f "$PROJECT_ROOT/k8s/external-secret.yaml" -n "$NAMESPACE"
+deploy_timing_phase_end "Apply Kubernetes manifests"
+
+deploy_timing_phase_start "Wait for Vault secret sync"
+for i in $(seq 1 30); do
+  if kubectl get secret "${SERVICE_NAME}-secret" -n "$NAMESPACE" >/dev/null 2>&1; then
+    echo -e "${GREEN}ExternalSecret synced${NC}"
+    break
+  fi
+  if [ "$i" -eq 30 ]; then
+    echo -e "${RED}ExternalSecret did not create ${SERVICE_NAME}-secret${NC}"
+    kubectl describe externalsecret "${SERVICE_NAME}-secret" -n "$NAMESPACE" || true
+    exit 1
+  fi
+  sleep 2
+done
+deploy_timing_phase_end "Wait for Vault secret sync"
+
+deploy_timing_phase_start "Database migration"
+MIGRATION_JOB="${SERVICE_NAME}-migrate-${IMAGE_TAG//[^a-zA-Z0-9-]/-}"
+kubectl delete job "$MIGRATION_JOB" -n "$NAMESPACE" --ignore-not-found >/dev/null
+cat <<YAML | kubectl apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${MIGRATION_JOB}
+  namespace: ${NAMESPACE}
+  labels:
+    app: ${SERVICE_NAME}
+    component: migration
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: ${SERVICE_NAME}
+        component: migration
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ${IMAGE}
+          imagePullPolicy: Always
+          command: ["node", "scripts/migrate.js"]
+          envFrom:
+            - configMapRef:
+                name: ${SERVICE_NAME}-config
+            - secretRef:
+                name: ${SERVICE_NAME}-secret
+YAML
+kubectl wait --for=condition=complete "job/${MIGRATION_JOB}" -n "$NAMESPACE" --timeout=180s || {
+  kubectl logs "job/${MIGRATION_JOB}" -n "$NAMESPACE" || true
+  exit 1
+}
+kubectl logs "job/${MIGRATION_JOB}" -n "$NAMESPACE"
+kubectl delete job "$MIGRATION_JOB" -n "$NAMESPACE" --ignore-not-found >/dev/null
+deploy_timing_phase_end "Database migration"
+
+deploy_timing_phase_start "Apply runtime manifests"
 kubectl apply -f "$PROJECT_ROOT/k8s/deployment.yaml" -n "$NAMESPACE"
 kubectl apply -f "$PROJECT_ROOT/k8s/service.yaml" -n "$NAMESPACE"
 kubectl apply -f "$PROJECT_ROOT/k8s/ingress.yaml" -n "$NAMESPACE"
 kubectl apply -f "$PROJECT_ROOT/k8s/expiry-recheck-cronjob.yaml" -n "$NAMESPACE"
 kubectl apply -f "$PROJECT_ROOT/k8s/notification-dispatch-cronjob.yaml" -n "$NAMESPACE"
-deploy_timing_phase_end "Apply Kubernetes manifests"
+deploy_timing_phase_end "Apply runtime manifests"
 
 deploy_timing_phase_start "Update deployment image"
 kubectl set image "deployment/${SERVICE_NAME}" app="$IMAGE" -n "$NAMESPACE"

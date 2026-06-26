@@ -19,7 +19,7 @@ data:
   DOCS_RAG_SERVICE_URL: "http://docs-rag-microservice.statex-apps.svc.cluster.local:3397"
   DB_HOST: "db-server-postgres.statex-apps.svc.cluster.local"
   DB_PORT: "5432"
-  DB_USER: "dbadmin"
+  DB_USER: "domain_research"
   DB_NAME: "domain_research"
   DB_SYNC: "false"
   RDAP_BOOTSTRAP_URL: "https://data.iana.org/rdap/dns.json"

@@ -24,9 +24,9 @@ export class DomainSuggestionJob {
   @OneToMany(() => DomainCandidate, (candidate) => candidate.job)
   candidates!: DomainCandidate[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
 }

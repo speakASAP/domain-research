@@ -25,7 +25,7 @@ Deploy only after:
 4. `npm run gate:pre-coding` passes.
 5. `npm run gate:deployment` passes.
 6. Vault has required keys at `secret/prod/domain-research`.
-7. Postgres database and migrations are ready.
+7. Postgres database exists and `npm run migrate` passes.
 
 Command:
 

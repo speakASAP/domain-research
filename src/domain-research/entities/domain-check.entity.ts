@@ -21,18 +21,18 @@ export class DomainCheck {
   @Column({ type: 'varchar', length: 255, nullable: true })
   registrar?: string | null;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt?: Date | null;
 
   @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
   nameservers!: string[];
 
-  @Column({ type: 'varchar', length: 128, nullable: true })
+  @Column({ name: 'raw_hash', type: 'varchar', length: 128, nullable: true })
   rawHash?: string | null;
 
   @Column({ type: 'text', nullable: true })
   error?: string | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'checked_at' })
   checkedAt!: Date;
 }

@@ -10,31 +10,31 @@ export class DomainWatch {
   fqdn!: string;
 
   @Index()
-  @Column({ type: 'varchar', length: 128, nullable: true })
+  @Column({ name: 'user_id', type: 'varchar', length: 128, nullable: true })
   userId?: string | null;
 
-  @Column({ type: 'varchar', length: 320, nullable: true })
+  @Column({ name: 'notification_email', type: 'varchar', length: 320, nullable: true })
   notificationEmail?: string | null;
 
   @Column({ type: 'boolean', default: true })
   enabled!: boolean;
 
   @Index()
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'next_check_at', type: 'timestamptz', nullable: true })
   nextCheckAt?: Date | null;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'last_check_at', type: 'timestamptz', nullable: true })
   lastCheckAt?: Date | null;
 
-  @Column({ type: 'varchar', length: 32, default: 'unknown' })
+  @Column({ name: 'last_availability', type: 'varchar', length: 32, default: 'unknown' })
   lastAvailability!: 'available' | 'registered' | 'unknown';
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'last_expires_at', type: 'timestamptz', nullable: true })
   lastExpiresAt?: Date | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
 }

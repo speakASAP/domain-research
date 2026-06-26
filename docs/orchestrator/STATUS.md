@@ -18,10 +18,14 @@ Completed:
 - `npm run gate:pre-coding` passed.
 - `npm run gate:deployment` passed.
 - `kubectl apply --dry-run=client` passed for configmap, external-secret, deployment, service, ingress, and both CronJobs.
+- Vault path `secret/prod/domain-research` created with required keys.
+- Postgres database and role `domain_research` created.
+- Explicit migration script added as `scripts/migrate.js`.
+- Deploy script now runs migrations through a Kubernetes Job with ConfigMap+ExternalSecret env.
+- Validation after deployment hardening passed: `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, `npm run gate:deployment`, and manifest dry-run.
 
 Pending:
 
-- Vault/DB readiness.
-- Explicit TypeORM migrations.
+- Production migration Job execution during deploy.
 - Hosted Auth role/client registration.
 - Production deployment.

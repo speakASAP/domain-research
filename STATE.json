@@ -7,13 +7,13 @@
     "domain": "domain-research.alfares.cz",
     "port": 4860,
     "database": "domain_research",
+    "databaseUser": "domain_research",
     "vaultPath": "secret/prod/domain-research"
   },
   "blockers": [
-    "[MISSING: Vault secrets at secret/prod/domain-research]",
-    "[MISSING: explicit database migration policy]",
     "[MISSING: final Auth roles and hosted Auth client registration]",
-    "[MISSING: paid domain provider approval and API keys]"
+    "[MISSING: paid domain provider approval and API keys]",
+    "[MISSING: real AI/notification service-token issuer contract]"
   ],
   "parallelReady": [
     "IPS/docs lane",
@@ -26,6 +26,9 @@
     "docsAudit": "passed",
     "preCodingGate": "passed",
     "deploymentReadinessGate": "passed",
+    "vaultSecrets": "created",
+    "database": "created",
+    "migrationPolicy": "kubernetes-job",
     "deployed": false
   },
   "updatedAt": "2026-06-26T00:00:00Z"

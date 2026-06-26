@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { DomainSuggestionJob } from './domain-suggestion-job.entity';
 
 @Entity('domain_candidates')
@@ -7,6 +7,7 @@ export class DomainCandidate {
   id!: string;
 
   @ManyToOne(() => DomainSuggestionJob, (job) => job.candidates, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'job_id' })
   job!: DomainSuggestionJob;
 
   @Column({ type: 'varchar', length: 255 })
@@ -27,6 +28,6 @@ export class DomainCandidate {
   @Column({ type: 'varchar', length: 32, default: 'unchecked' })
   availability!: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 }

@@ -20,6 +20,7 @@ Users describe the business or service they are building. The service proposes d
 - `[ASSUMPTION: service domain]` `https://domain-research.alfares.cz`.
 - `[ASSUMPTION: service port]` `4860`.
 - `[ASSUMPTION: database name]` `domain_research`.
+- `[ASSUMPTION: database user]` `domain_research`.
 - `[ASSUMPTION: Vault path]` `secret/prod/domain-research`.
 - `[ASSUMPTION: purchase flow]` handoff to registrar UI/API link, not automatic purchase in MVP.
 
@@ -47,6 +48,7 @@ npm test
 npm run docs:audit
 npm run gate:pre-coding
 npm run gate:deployment
+npm run migrate
 ```
 
 ## Deploy

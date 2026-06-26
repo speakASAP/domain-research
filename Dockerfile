@@ -9,6 +9,7 @@ RUN npm ci
 COPY tsconfig*.json nest-cli.json ./
 COPY src ./src
 COPY public ./public
+COPY scripts ./scripts
 RUN npm run build
 
 FROM node:24-slim AS runtime
@@ -22,6 +23,7 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/scripts ./scripts
 
 EXPOSE ${PORT:-4860}
 
