@@ -62,6 +62,26 @@ None in local validation.
 
 Drop timing is stored as an estimate unless RDAP status evidence provides stronger lifecycle context; exact availability still requires provider check.
 
+## Production deploy evidence
+
+```bash
+./scripts/deploy.sh
+# result: passed
+# image pushed: localhost:5000/domain-research:d703edd
+# migration job completed: domain-research migrations applied
+# deployment/domain-research successfully rolled out
+# in-pod health check passed
+
+curl -k -s -i https://domain-research.alfares.cz/health
+# result: HTTP/2 200
+
+kubectl -n statex-apps get deploy domain-research -o custom-columns=IMAGE:.spec.template.spec.containers[0].image --no-headers
+# result: localhost:5000/domain-research:d703edd
+
+kubectl -n statex-apps get cronjob domain-research-expiry-recheck -o custom-columns=SCHEDULE:.spec.schedule --no-headers
+# result: */5 * * * *
+```
+
 ## Recommendation
 
-Proceed to remote deployment.
+TASK-004 is implemented, deployed, and validated.

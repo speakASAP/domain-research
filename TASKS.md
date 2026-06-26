@@ -38,7 +38,7 @@ User-owned watch API integration is implemented with Auth `/auth/validate`. Rema
 
 ## TASK-004 Expiring Domain Drop Tracking
 
-Status: in_progress
+Status: completed
 
 Trace:
 

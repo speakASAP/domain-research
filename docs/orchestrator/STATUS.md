@@ -166,4 +166,4 @@ Implemented in this pass:
 - Scheduler now dedupes lifecycle notifications and keeps availability notification gated on a fresh provider check.
 - Expiry recheck CronJob cadence changed to every 5 minutes so per-watch `nextCheckAt` can hit hourly/final drop windows.
 
-Validation: `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed. Deployment pending.
+Validation: `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed. Production deploy passed with image `localhost:5000/domain-research:d703edd`; public `/health` returned HTTP 200; expiry CronJob schedule is `*/5 * * * *`.
