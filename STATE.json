@@ -1,0 +1,32 @@
+{
+  "project": "domain-research",
+  "status": "bootstrap_validated_not_deployed",
+  "currentGoal": "Goal 1: Bootstrap Service Foundation",
+  "currentTask": "TASK-001",
+  "assumptions": {
+    "domain": "domain-research.alfares.cz",
+    "port": 4860,
+    "database": "domain_research",
+    "vaultPath": "secret/prod/domain-research"
+  },
+  "blockers": [
+    "[MISSING: Vault secrets at secret/prod/domain-research]",
+    "[MISSING: explicit database migration policy]",
+    "[MISSING: final Auth roles and hosted Auth client registration]",
+    "[MISSING: paid domain provider approval and API keys]"
+  ],
+  "parallelReady": [
+    "IPS/docs lane",
+    "service skeleton lane",
+    "ops manifests lane"
+  ],
+  "validation": {
+    "build": "passed",
+    "test": "passed",
+    "docsAudit": "passed",
+    "preCodingGate": "passed",
+    "deploymentReadinessGate": "passed",
+    "deployed": false
+  },
+  "updatedAt": "2026-06-26T00:00:00Z"
+}

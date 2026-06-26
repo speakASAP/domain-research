@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: domain-research-expiry-recheck
+  namespace: statex-apps
+  labels:
+    app: domain-research
+    component: expiry-recheck
+    managed-by: k8s-migration
+spec:
+  schedule: "0 8 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: domain-research
+            component: expiry-recheck
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: expiry-recheck
+              image: localhost:5000/domain-research:latest
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: domain-research-config
+                - secretRef:
+                    name: domain-research-secret
+              command: ["node", "-e"]
+              args:
+                - |
+                  (async () => {
+                    const jwt = require('jsonwebtoken');
+                    const baseUrl = 'http://domain-research:4860';
+                    if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is required');
+                    const token = jwt.sign({ sub: 'domain-research-expiry-cron', roles: ['internal:domain-research:admin'] }, process.env.JWT_SECRET, { expiresIn: '5m' });
+                    const response = await fetch(`${baseUrl}/api/internal/jobs/expiry-recheck/run-due`, {
+                      method: 'POST',
+                      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+                      body: JSON.stringify({ limit: 100 }),
+                    });
+                    const payload = await response.json();
+                    console.log(JSON.stringify(payload));
+                    if (!response.ok || payload.failed > 0) throw new Error(`expiry recheck failed: ${JSON.stringify(payload)}`);
+                  })().catch((error) => { console.error(error); process.exit(1); });

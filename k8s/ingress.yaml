@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: domain-research
+  namespace: statex-apps
+  labels:
+    app: domain-research
+    managed-by: k8s-migration
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - domain-research.alfares.cz
+      secretName: domain-research-tls
+  rules:
+    - host: domain-research.alfares.cz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: domain-research
+                port:
+                  number: 4860

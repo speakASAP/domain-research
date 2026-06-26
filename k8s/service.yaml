@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: domain-research
+  namespace: statex-apps
+  labels:
+    app: domain-research
+    managed-by: k8s-migration
+spec:
+  type: ClusterIP
+  selector:
+    app: domain-research
+  ports:
+    - protocol: TCP
+      port: 4860
+      targetPort: 4860
+      name: http

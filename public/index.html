@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Domain Research</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <h1>Domain Research</h1>
+            <p>Describe a business, compare domain candidates, and watch registered names until they become available.</p>
+          </div>
+          <span class="status-pill" id="healthStatus">checking</span>
+        </header>
+
+        <form id="suggestionForm" class="panel">
+          <label for="description">Business or service description</label>
+          <textarea id="description" required rows="5" placeholder="Example: AI assistant that helps founders find available domain names and tracks expiring domains"></textarea>
+          <div class="grid">
+            <label>
+              TLDs
+              <input id="tlds" value="com,cz,ai,io,app,dev" />
+            </label>
+            <label>
+              Count
+              <input id="count" type="number" value="12" min="3" max="50" />
+            </label>
+          </div>
+          <button type="submit">Generate candidates</button>
+        </form>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>Candidates</h2>
+            <button id="checkSelected" type="button">Check selected</button>
+          </div>
+          <div id="candidateList" class="candidate-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>Watch a domain</h2>
+          </div>
+          <form id="watchForm" class="watch-form">
+            <input id="watchDomain" placeholder="example.com" required />
+            <input id="watchEmail" type="email" placeholder="notification email" />
+            <button type="submit">Create watch</button>
+          </form>
+          <div id="watchList" class="watch-list"></div>
+        </section>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

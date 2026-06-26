@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: domain-research-config
+  namespace: statex-apps
+  labels:
+    app: domain-research
+    managed-by: k8s-migration
+data:
+  NODE_ENV: "production"
+  SERVICE_NAME: "domain-research"
+  DOMAIN: "domain-research.alfares.cz"
+  PORT: "4860"
+  AUTH_SERVICE_URL: "http://auth-microservice.statex-apps.svc.cluster.local:3370"
+  LOGGING_SERVICE_URL: "http://logging-microservice.statex-apps.svc.cluster.local:3367"
+  LOGGING_SERVICE_API_PATH: "/api/logs"
+  NOTIFICATION_SERVICE_URL: "http://notifications-microservice.statex-apps.svc.cluster.local:3368"
+  AI_SERVICE_URL: "http://ai-microservice.statex-apps.svc.cluster.local:3380"
+  DOCS_RAG_SERVICE_URL: "http://docs-rag-microservice.statex-apps.svc.cluster.local:3397"
+  DB_HOST: "db-server-postgres.statex-apps.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_USER: "dbadmin"
+  DB_NAME: "domain_research"
+  DB_SYNC: "false"
+  RDAP_BOOTSTRAP_URL: "https://data.iana.org/rdap/dns.json"
+  DEFAULT_TLDS: "com,cz,ai,io,app,dev,co"
+  AI_MODEL_TIER: "cheap"
