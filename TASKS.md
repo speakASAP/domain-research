@@ -32,6 +32,6 @@ Blocked by `[MISSING: migration policy and live DB setup]`.
 
 ## TASK-003 Add Hosted Auth
 
-Status: pending
+Status: in_progress
 
-Blocked by `[MISSING: role contract and client registration]`.
+User-owned watch API integration is implemented with Auth `/auth/validate`. Remaining blocker: `[MISSING: role contract and client registration]`.

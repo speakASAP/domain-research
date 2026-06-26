@@ -46,7 +46,7 @@ Tables:
 - `ai-microservice`: candidate expansion through `POST /ai/complete`.
 - `notifications-microservice`: email/Telegram/WhatsApp delivery through `/notifications/send`.
 - `logging-microservice`: structured logs through `/api/logs`.
-- `auth-microservice`: `[MISSING: final hosted Auth / service token policy]`.
+- `auth-microservice`: validates browser bearer tokens through `POST /auth/validate` for user-owned watch endpoints. `[MISSING: final hosted Auth role/client registration]`.
 - `docs-rag-microservice`: ingest markdown docs after repo registration.
 
 ## Security

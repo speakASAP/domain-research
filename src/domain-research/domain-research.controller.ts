@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { AvailabilityCheckDto } from './dto/availability-check.dto';
 import { CreateWatchDto } from './dto/create-watch.dto';
@@ -8,6 +8,9 @@ import { AvailabilityService } from './services/availability.service';
 import { DomainWatchService } from './services/domain-watch.service';
 import { SchedulerService } from './services/scheduler.service';
 import { InternalServiceGuard } from '../service-identity/internal-service.guard';
+import { AuthUserGuard } from '../auth/auth-user.guard';
+import { CurrentAuthUser } from '../auth/current-auth-user.decorator';
+import { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller()
 export class DomainResearchController {
@@ -33,24 +36,28 @@ export class DomainResearchController {
     return this.availability.checkMany(dto.domains);
   }
 
+  @UseGuards(AuthUserGuard)
   @Post('watches')
-  createWatch(@Body() dto: CreateWatchDto) {
-    return this.watches.createWatch(dto);
+  createWatch(@Body() dto: CreateWatchDto, @CurrentAuthUser() user: AuthenticatedUser) {
+    return this.watches.createWatch(dto, user);
   }
 
+  @UseGuards(AuthUserGuard)
   @Get('watches')
-  listWatches(@Query('userId') userId?: string) {
-    return this.watches.listWatches(userId);
+  listWatches(@CurrentAuthUser() user: AuthenticatedUser) {
+    return this.watches.listWatches(user.id);
   }
 
+  @UseGuards(AuthUserGuard)
   @Patch('watches/:id')
-  updateWatch(@Param('id') id: string, @Body() dto: UpdateWatchDto) {
-    return this.watches.updateWatch(id, dto);
+  updateWatch(@Param('id') id: string, @Body() dto: UpdateWatchDto, @CurrentAuthUser() user: AuthenticatedUser) {
+    return this.watches.updateWatch(id, user.id, dto);
   }
 
+  @UseGuards(AuthUserGuard)
   @Get('watches/:id/history')
-  watchHistory(@Param('id') id: string) {
-    return this.watches.watchHistory(id);
+  watchHistory(@Param('id') id: string, @CurrentAuthUser() user: AuthenticatedUser) {
+    return this.watches.watchHistory(id, user.id);
   }
 
   @UseGuards(InternalServiceGuard)

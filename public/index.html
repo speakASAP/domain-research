@@ -14,16 +14,27 @@
             <h1>Domain Research</h1>
             <p>Describe a business, compare domain candidates, and watch registered names until they become available.</p>
           </div>
-          <span class="status-pill" id="healthStatus">checking</span>
+          <div class="top-actions">
+            <span class="status-pill" id="healthStatus">checking</span>
+            <span class="status-pill" id="authStatus">signed out</span>
+            <button id="authButton" type="button">Sign in</button>
+          </div>
         </header>
 
         <form id="suggestionForm" class="panel">
-          <label for="description">Business or service description</label>
+          <div class="field-header">
+            <label for="description">Business or service description</label>
+            <button id="voiceDescription" class="voice-button" type="button" aria-label="Start voice dictation" aria-pressed="false">
+              <span class="voice-dot" aria-hidden="true"></span>
+              <span id="voiceButtonText">Voice input</span>
+            </button>
+          </div>
           <textarea id="description" required rows="5" placeholder="Example: AI assistant that helps founders find available domain names and tracks expiring domains"></textarea>
+          <p id="voiceStatus" class="voice-status" role="status" aria-live="polite">Chrome voice input ready.</p>
           <div class="grid">
             <label>
               TLDs
-              <input id="tlds" value="com,cz,ai,io,app,dev" />
+              <input id="tlds" value="com,cz" readonly />
             </label>
             <label>
               Count
@@ -47,7 +58,6 @@
           </div>
           <form id="watchForm" class="watch-form">
             <input id="watchDomain" placeholder="example.com" required />
-            <input id="watchEmail" type="email" placeholder="notification email" />
             <button type="submit">Create watch</button>
           </form>
           <div id="watchList" class="watch-list"></div>

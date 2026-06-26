@@ -14,9 +14,11 @@ Add explicit TypeORM migrations, database readiness checks, and migration valida
 
 ## Goal 3: Auth And User Ownership
 
-Status: pending
+Status: in_progress
 
 Integrate hosted Auth, define `app:domain-research:*` roles, and bind watches to authenticated users.
+
+Current progress: watch endpoints validate Auth bearer tokens through `auth-microservice` and derive notification email from the registered user. `[MISSING: final hosted Auth role/client registration]`.
 
 ## Goal 4: Provider Adapter Layer
 

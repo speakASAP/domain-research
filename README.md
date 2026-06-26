@@ -32,10 +32,10 @@ Users describe the business or service they are building. The service proposes d
 | `POST` | `/api/domain-suggestions` | Generate candidate domain names |
 | `GET` | `/api/domain-suggestions/:id` | Read suggestion job and candidates |
 | `POST` | `/api/availability/check` | Check selected domains |
-| `POST` | `/api/watches` | Watch a domain for lifecycle changes |
-| `GET` | `/api/watches` | List watches |
-| `PATCH` | `/api/watches/:id` | Enable/disable or update notification target |
-| `GET` | `/api/watches/:id/history` | Show availability observations |
+| `POST` | `/api/watches` | Watch a domain for lifecycle changes; requires Auth bearer token and uses the registered user email |
+| `GET` | `/api/watches` | List watches for the authenticated user |
+| `PATCH` | `/api/watches/:id` | Enable/disable an authenticated user's watch |
+| `GET` | `/api/watches/:id/history` | Show availability observations for an authenticated user's watch |
 | `POST` | `/api/internal/jobs/expiry-recheck/run-due` | Internal CronJob endpoint |
 | `POST` | `/api/internal/jobs/notification-dispatch/run-due` | Internal CronJob endpoint |
 

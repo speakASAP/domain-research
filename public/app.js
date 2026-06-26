@@ -1,13 +1,85 @@
-const state = { candidates: [] };
+const state = {
+  candidates: [],
+  voice: {
+    active: false,
+    baseText: '',
+    finalText: '',
+    recognition: null,
+    shouldRestart: false,
+  },
+};
+
+const STORAGE_ACCESS = 'domain_research_access';
+const STORAGE_REFRESH = 'domain_research_refresh';
+const STORAGE_EMAIL = 'domain_research_email';
+const STORAGE_STATE = 'domain_research_auth_state';
+const LEGACY_ACCESS_KEYS = ['auth_profile_access', 'auth_admin_access'];
 
 const healthStatus = document.getElementById('healthStatus');
 const candidateList = document.getElementById('candidateList');
 const watchList = document.getElementById('watchList');
+const descriptionInput = document.getElementById('description');
+const voiceButton = document.getElementById('voiceDescription');
+const voiceButtonText = document.getElementById('voiceButtonText');
+const voiceStatus = document.getElementById('voiceStatus');
+const authButton = document.getElementById('authButton');
+const authStatus = document.getElementById('authStatus');
+
+function getAccessToken() {
+  return sessionStorage.getItem(STORAGE_ACCESS) || LEGACY_ACCESS_KEYS.map((key) => sessionStorage.getItem(key)).find(Boolean) || '';
+}
+
+function setTokens(accessToken, refreshToken, email) {
+  if (accessToken) sessionStorage.setItem(STORAGE_ACCESS, accessToken);
+  if (refreshToken) sessionStorage.setItem(STORAGE_REFRESH, refreshToken);
+  if (email) sessionStorage.setItem(STORAGE_EMAIL, email);
+}
+
+function consumeAuthFragment() {
+  if (!window.location.hash || !window.location.hash.includes('access_token=')) return;
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = params.get('access_token') || '';
+  const refreshToken = params.get('refresh_token') || '';
+  const email = params.get('email') || '';
+  const returnedState = params.get('state') || '';
+  const expectedState = sessionStorage.getItem(STORAGE_STATE) || '';
+
+  if (returnedState && expectedState && returnedState !== expectedState) {
+    sessionStorage.removeItem(STORAGE_STATE);
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    throw new Error('Auth state mismatch');
+  }
+
+  setTokens(accessToken, refreshToken, email);
+  sessionStorage.removeItem(STORAGE_STATE);
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
+function buildAuthUrl(mode = 'login') {
+  const stateValue = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+  sessionStorage.setItem(STORAGE_STATE, stateValue);
+  const url = new URL(`https://auth.alfares.cz/${mode}`);
+  url.searchParams.set('client_id', 'domain-research');
+  url.searchParams.set('return_url', `${window.location.origin}${window.location.pathname}`);
+  url.searchParams.set('state', stateValue);
+  return url.toString();
+}
+
+function updateAuthStatus() {
+  const email = sessionStorage.getItem(STORAGE_EMAIL) || '';
+  const loggedIn = Boolean(getAccessToken());
+  if (authStatus) authStatus.textContent = loggedIn ? (email || 'signed in') : 'signed out';
+  if (authButton) authButton.textContent = loggedIn ? 'Sign out' : 'Sign in';
+}
 
 async function api(path, options = {}) {
+  const token = getAccessToken();
+  const headers = { 'content-type': 'application/json', ...(options.headers || {}) };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const response = await fetch(`/api${path}`, {
     ...options,
-    headers: { 'content-type': 'application/json', ...(options.headers || {}) },
+    headers,
   });
   if (!response.ok) throw new Error(`${response.status} ${await response.text()}`);
   return response.json();
@@ -20,6 +92,123 @@ async function checkHealth() {
   } catch {
     healthStatus.textContent = 'offline';
   }
+}
+
+function setupVoiceInput() {
+  if (!descriptionInput || !voiceButton) return;
+
+  const BrowserSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!BrowserSpeechRecognition) {
+    voiceButton.disabled = true;
+    voiceButtonText.textContent = 'Voice unavailable';
+    voiceStatus.textContent = 'Chrome voice input is unavailable in this browser.';
+    return;
+  }
+
+  const recognition = new BrowserSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = navigator.language || 'en-US';
+  state.voice.recognition = recognition;
+
+  voiceButton.addEventListener('click', () => {
+    if (state.voice.active) {
+      stopVoiceInput();
+    } else {
+      startVoiceInput();
+    }
+  });
+
+  recognition.addEventListener('start', () => {
+    state.voice.active = true;
+    updateVoiceUi(true, 'Listening...');
+  });
+
+  recognition.addEventListener('result', handleVoiceResult);
+
+  recognition.addEventListener('error', (event) => {
+    const messages = {
+      'not-allowed': 'Microphone access was blocked.',
+      'service-not-allowed': 'Microphone access was blocked.',
+      'audio-capture': 'Microphone is unavailable.',
+      'no-speech': 'Listening...',
+    };
+    voiceStatus.textContent = messages[event.error] || 'Voice input stopped.';
+    if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(event.error)) {
+      state.voice.shouldRestart = false;
+    }
+  });
+
+  recognition.addEventListener('end', () => {
+    if (state.voice.shouldRestart) {
+      try {
+        recognition.start();
+      } catch {
+        state.voice.shouldRestart = false;
+        state.voice.active = false;
+        updateVoiceUi(false, 'Chrome voice input ready.');
+      }
+      return;
+    }
+
+    state.voice.active = false;
+    updateVoiceUi(false, 'Chrome voice input ready.');
+  });
+}
+
+function startVoiceInput() {
+  if (!state.voice.recognition) return;
+
+  state.voice.baseText = descriptionInput.value.trim();
+  state.voice.finalText = '';
+  state.voice.shouldRestart = true;
+
+  try {
+    state.voice.recognition.start();
+  } catch {
+    voiceStatus.textContent = 'Voice input is already active.';
+  }
+}
+
+function stopVoiceInput() {
+  if (!state.voice.recognition) return;
+
+  state.voice.shouldRestart = false;
+  state.voice.recognition.stop();
+  updateVoiceUi(false, 'Chrome voice input ready.');
+}
+
+function handleVoiceResult(event) {
+  let interimText = '';
+
+  for (let index = event.resultIndex; index < event.results.length; index += 1) {
+    const transcript = event.results[index][0].transcript.trim();
+    if (!transcript) continue;
+
+    if (event.results[index].isFinal) {
+      state.voice.finalText = joinDictationText(state.voice.finalText, transcript);
+    } else {
+      interimText = joinDictationText(interimText, transcript);
+    }
+  }
+
+  const dictatedText = joinDictationText(state.voice.finalText, interimText);
+  descriptionInput.value = joinDictationText(state.voice.baseText, dictatedText);
+  descriptionInput.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function updateVoiceUi(isListening, statusText) {
+  voiceButton.classList.toggle('is-listening', isListening);
+  voiceButton.setAttribute('aria-pressed', String(isListening));
+  voiceButton.setAttribute('aria-label', isListening ? 'Stop voice dictation' : 'Start voice dictation');
+  voiceButtonText.textContent = isListening ? 'Stop' : 'Voice input';
+  voiceStatus.textContent = statusText;
+}
+
+function joinDictationText(currentText, nextText) {
+  if (!currentText) return nextText;
+  if (!nextText) return currentText;
+  return `${currentText} ${nextText}`;
 }
 
 function renderCandidates() {
@@ -59,28 +248,56 @@ document.getElementById('checkSelected').addEventListener('click', async () => {
 
 document.getElementById('watchForm').addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (!getAccessToken()) {
+    window.location.assign(buildAuthUrl('login'));
+    return;
+  }
   await api('/watches', {
     method: 'POST',
     body: JSON.stringify({
       fqdn: document.getElementById('watchDomain').value,
-      notificationEmail: document.getElementById('watchEmail').value || undefined,
     }),
   });
+  document.getElementById('watchDomain').value = '';
   await loadWatches();
 });
 
+if (authButton) {
+  authButton.addEventListener('click', () => {
+    if (getAccessToken()) {
+      sessionStorage.removeItem(STORAGE_ACCESS);
+      sessionStorage.removeItem(STORAGE_REFRESH);
+      sessionStorage.removeItem(STORAGE_EMAIL);
+      updateAuthStatus();
+      loadWatches().catch(() => undefined);
+      return;
+    }
+    window.location.assign(buildAuthUrl('login'));
+  });
+}
+
 async function loadWatches() {
-  const watches = await api('/watches');
-  watchList.innerHTML = watches.map((watch) => `
-    <div class="watch">
-      <span></span>
-      <span>
-        <span class="domain">${escapeHtml(watch.fqdn)}</span>
-        <span class="meta">next check ${escapeHtml(formatDate(watch.nextCheckAt))}</span>
-      </span>
-      <span class="badge ${watch.lastAvailability === 'registered' ? 'warning' : ''}">${escapeHtml(watch.lastAvailability)}</span>
-    </div>
-  `).join('') || '<p class="meta">No watched domains yet.</p>';
+  updateAuthStatus();
+  if (!getAccessToken()) {
+    watchList.innerHTML = '<p class="meta">Sign in to view watched domains.</p>';
+    return;
+  }
+
+  try {
+    const watches = await api('/watches');
+    watchList.innerHTML = watches.map((watch) => `
+      <div class="watch">
+        <span></span>
+        <span>
+          <span class="domain">${escapeHtml(watch.fqdn)}</span>
+          <span class="meta">next check ${escapeHtml(formatDate(watch.nextCheckAt))}</span>
+        </span>
+        <span class="badge ${watch.lastAvailability === 'registered' ? 'warning' : ''}">${escapeHtml(watch.lastAvailability)}</span>
+      </div>
+    `).join('') || '<p class="meta">No watched domains yet.</p>';
+  } catch (error) {
+    watchList.innerHTML = `<p class="meta">${escapeHtml(error.message)}</p>`;
+  }
 }
 
 function formatDate(value) {
@@ -97,5 +314,12 @@ function escapeHtml(value) {
   }[char]));
 }
 
+try {
+  consumeAuthFragment();
+} catch (error) {
+  watchList.innerHTML = `<p class="meta">${escapeHtml(error.message)}</p>`;
+}
+updateAuthStatus();
+setupVoiceInput();
 checkHealth();
 loadWatches().catch(() => undefined);

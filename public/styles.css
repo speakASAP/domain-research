@@ -39,6 +39,20 @@ body {
   margin-bottom: 24px;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 280px;
+}
+
+.top-actions button {
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+
 h1,
 h2,
 p {
@@ -87,6 +101,18 @@ label {
   font-size: 13px;
 }
 
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.field-header label {
+  display: block;
+}
+
 textarea,
 input {
   width: 100%;
@@ -121,6 +147,64 @@ button {
 
 button:hover {
   background: var(--accent-strong);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.voice-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  color: var(--accent-strong);
+  background: #f7fbfa;
+  white-space: nowrap;
+}
+
+.voice-button:hover:not(:disabled) {
+  background: #e8f5f2;
+}
+
+.voice-button.is-listening {
+  border-color: #b42318;
+  color: #b42318;
+  background: #fff3f0;
+}
+
+.voice-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.voice-button.is-listening .voice-dot {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.voice-status {
+  min-height: 18px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 .section-title {
@@ -173,7 +257,7 @@ button:hover {
 
 .watch-form {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -189,6 +273,16 @@ button:hover {
   .grid {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .top-actions {
+    justify-content: start;
+    min-width: 0;
+  }
+
+  .field-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .candidate,

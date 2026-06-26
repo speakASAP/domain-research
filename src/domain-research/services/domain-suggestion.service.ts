@@ -6,6 +6,8 @@ import { DomainCandidate } from '../entities/domain-candidate.entity';
 import { DomainSuggestionJob } from '../entities/domain-suggestion-job.entity';
 import { AiClient } from '../../integrations/ai.client';
 
+const SUPPORTED_TLDS = ['com', 'cz'];
+
 @Injectable()
 export class DomainSuggestionService {
   constructor(
@@ -49,11 +51,11 @@ export class DomainSuggestionService {
   }
 
   private normalizeTlds(input?: string[]): string[] {
-    const fallback = (process.env.DEFAULT_TLDS || 'com,cz,ai,io,app,dev,co').split(',');
-    return (input?.length ? input : fallback)
+    const fallback = (process.env.DEFAULT_TLDS || SUPPORTED_TLDS.join(',')).split(',');
+    const tlds = Array.from(new Set((input?.length ? input : fallback)
       .map((tld) => tld.toLowerCase().replace(/^\./, '').trim())
-      .filter(Boolean)
-      .slice(0, 12);
+      .filter((tld) => SUPPORTED_TLDS.includes(tld))));
+    return tlds.length ? tlds : SUPPORTED_TLDS;
   }
 
   private async generateNames(description: string, count: number): Promise<string[]> {

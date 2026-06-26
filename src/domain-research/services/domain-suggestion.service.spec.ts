@@ -18,4 +18,28 @@ describe('DomainSuggestionService heuristics', () => {
     expect(result.id).toBe('job-1');
     expect(saved.some((candidate) => candidate.fqdn === 'brandpilot.com')).toBe(true);
   });
+
+  it('only keeps com and cz TLDs', async () => {
+    const saved: any[] = [];
+    let savedJob: any;
+    const jobs: any = {
+      create: (input: any) => input,
+      save: async (input: any) => {
+        savedJob = { id: 'job-1', ...input };
+        return savedJob;
+      },
+      findOne: async () => ({ ...savedJob, candidates: saved }),
+    };
+    const candidates: any = {
+      create: (input: any) => input,
+      save: async (input: any[]) => saved.push(...input),
+    };
+    const ai: any = { suggestDomainNames: async () => ['brandpilot'] };
+    const service = new DomainSuggestionService(jobs, candidates, ai);
+
+    const result = await service.createSuggestion({ description: 'AI domain research tool', tlds: ['com', 'cz', 'ai', 'io'], count: 4 });
+
+    expect(result.tlds).toEqual(['com', 'cz']);
+    expect(new Set(saved.map((candidate) => candidate.tld))).toEqual(new Set(['com', 'cz']));
+  });
 });

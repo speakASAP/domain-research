@@ -32,6 +32,15 @@ Pending:
 
 - Hosted Auth role/client registration.
 
+
+Auth integration update:
+
+- Watch endpoints now require Auth bearer tokens validated through `auth-microservice` `/auth/validate`.
+- New watches bind `userId` to the Auth user id and `notificationEmail` to the registered Auth email.
+- The browser watch form no longer accepts manual notification email input and forwards the Auth bearer token from hosted Auth handoff.
+- Remaining Auth work: `[MISSING: final hosted Auth role/client registration]`.
+- Validation: `npm run build` passed; `npm test` passed with 4 suites / 9 tests; `npm run docs:audit`, `npm run gate:pre-coding`, and `npm run gate:deployment` passed.
+
 ## Production Deploy Evidence
 
 Date: 2026-06-26

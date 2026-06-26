@@ -23,5 +23,5 @@ data:
   DB_NAME: "domain_research"
   DB_SYNC: "false"
   RDAP_BOOTSTRAP_URL: "https://data.iana.org/rdap/dns.json"
-  DEFAULT_TLDS: "com,cz,ai,io,app,dev,co"
+  DEFAULT_TLDS: "com,cz"
   AI_MODEL_TIER: "cheap"
