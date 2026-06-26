@@ -11,8 +11,9 @@ Responsibilities:
 - Interpret successful domain objects as registered with high confidence.
 - Extract expiration events, registrar, and nameservers when present.
 - Persist a hash of raw payload, not the raw payload.
+- Use free WHOIS over TCP/43 as a conservative fallback when RDAP cannot produce a definitive result.
 
 Open:
 
 - `[MISSING: supported TLD acceptance matrix]`
-- `[MISSING: paid fallback provider]`
+- `[MISSING: broader free WHOIS marker matrix by TLD]`

@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { Socket } from 'net';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +8,18 @@ import { DomainCheck } from '../entities/domain-check.entity';
 type RdapBootstrap = {
   services: [string[], string[]][];
 };
+
+type WhoisAvailability = 'available' | 'registered' | 'unknown';
+
+type WhoisResult = {
+  availability: WhoisAvailability;
+  confidence: 'low' | 'medium';
+  text: string;
+  error?: string;
+};
+
+const WHOIS_TIMEOUT_MS = Number.parseInt(process.env.WHOIS_TIMEOUT_MS || '5000', 10);
+const IANA_WHOIS_SERVER = process.env.IANA_WHOIS_SERVER || 'whois.iana.org';
 
 @Injectable()
 export class AvailabilityService {
@@ -27,7 +40,7 @@ export class AvailabilityService {
     try {
       const baseUrl = await this.rdapBaseUrl(fqdn);
       if (!baseUrl) {
-        return this.persistCheck({ fqdn, availability: 'unknown', confidence: 'low', error: 'RDAP endpoint not found' });
+        return this.checkWithWhoisFallback(fqdn, 'RDAP endpoint not found');
       }
       const url = `${baseUrl.replace(/\/$/, '')}/domain/${encodeURIComponent(fqdn)}`;
       const response = await fetch(url, { headers: { accept: 'application/rdap+json, application/json' } });
@@ -36,13 +49,7 @@ export class AvailabilityService {
       }
       const text = await response.text();
       if (!response.ok) {
-        return this.persistCheck({
-          fqdn,
-          availability: 'unknown',
-          confidence: 'low',
-          error: `RDAP HTTP ${response.status}`,
-          rawHash: sha256(text),
-        });
+        return this.checkWithWhoisFallback(fqdn, `RDAP HTTP ${response.status}`, sha256(text));
       }
       const payload = JSON.parse(text) as Record<string, unknown>;
       return this.persistCheck({
@@ -56,12 +63,61 @@ export class AvailabilityService {
         rawHash: sha256(text),
       });
     } catch (error) {
+      return this.checkWithWhoisFallback(fqdn, error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private async checkWithWhoisFallback(fqdn: string, rdapError: string, rdapRawHash?: string): Promise<DomainCheck> {
+    if (process.env.WHOIS_FALLBACK_DISABLED === 'true') {
+      return this.persistCheck({ fqdn, availability: 'unknown', confidence: 'low', error: rdapError, rawHash: rdapRawHash });
+    }
+
+    const whois = await this.lookupWhois(fqdn);
+    if (whois.availability === 'unknown') {
       return this.persistCheck({
         fqdn,
         availability: 'unknown',
         confidence: 'low',
-        error: error instanceof Error ? error.message : String(error),
+        error: [rdapError, whois.error || 'WHOIS did not return a definitive availability marker'].join('; '),
+        rawHash: whois.text ? sha256(whois.text) : rdapRawHash,
       });
+    }
+
+    return this.persistCheck({
+      fqdn,
+      provider: 'whois',
+      availability: whois.availability,
+      confidence: whois.confidence,
+      rawHash: sha256(whois.text),
+      error: `RDAP fallback used: ${rdapError}`,
+    });
+  }
+
+  private async lookupWhois(fqdn: string): Promise<WhoisResult> {
+    try {
+      const tld = fqdn.split('.').pop()?.toLowerCase();
+      if (!tld) return { availability: 'unknown', confidence: 'low', text: '', error: 'WHOIS TLD not found' };
+
+      const ianaText = await queryWhoisServer(IANA_WHOIS_SERVER, tld);
+      const referral = parseWhoisReferral(ianaText);
+      if (!referral) {
+        return { availability: 'unknown', confidence: 'low', text: ianaText, error: 'WHOIS referral not found' };
+      }
+
+      const registryText = await queryWhoisServer(referral, fqdn);
+      const availability = classifyWhoisAvailability(registryText);
+      return {
+        availability,
+        confidence: availability === 'unknown' ? 'low' : 'medium',
+        text: registryText,
+      };
+    } catch (error) {
+      return {
+        availability: 'unknown',
+        confidence: 'low',
+        text: '',
+        error: `WHOIS ${error instanceof Error ? error.message : String(error)}`,
+      };
     }
   }
 
@@ -120,4 +176,63 @@ function extractRegistryStatuses(payload: Record<string, unknown>): string[] {
     .map((item) => String(item).toLowerCase().replace(/[ _]+/g, '-').trim())
     .filter(Boolean)
     .sort()));
+}
+
+export function parseWhoisReferral(text: string): string | null {
+  const match = text.match(/^whois:\s*(\S+)/im);
+  return match?.[1]?.toLowerCase() || null;
+}
+
+export function classifyWhoisAvailability(text: string): WhoisAvailability {
+  const normalized = text.toLowerCase();
+  const unavailableMarkers = [
+    /\bno match(?: for)?\b/,
+    /\bnot found\b/,
+    /\bno data found\b/,
+    /\bno entries found\b/,
+    /\bno object found\b/,
+    /\bdomain not found\b/,
+    /\bnot registered\b/,
+    /\bavailable for registration\b/,
+    /\bstatus:\s*free\b/,
+    /\bis free\b/,
+  ];
+  if (unavailableMarkers.some((pattern) => pattern.test(normalized))) return 'available';
+
+  const registeredMarkers = [
+    /^domain name:\s*\S+/im,
+    /^registrar:\s*\S+/im,
+    /^creation date:\s*\S+/im,
+    /^created:\s*\S+/im,
+    /^registered on:\s*\S+/im,
+    /^name server:\s*\S+/im,
+    /^nserver:\s*\S+/im,
+    /^state:\s*registered\b/im,
+  ];
+  if (registeredMarkers.some((pattern) => pattern.test(text))) return 'registered';
+
+  return 'unknown';
+}
+
+function queryWhoisServer(server: string, query: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const socket = new Socket();
+    const chunks: Buffer[] = [];
+    let settled = false;
+
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      socket.destroy();
+      if (error) reject(error);
+      else resolve(Buffer.concat(chunks).toString('utf8'));
+    };
+
+    socket.setTimeout(WHOIS_TIMEOUT_MS);
+    socket.once('timeout', () => finish(new Error(`timeout from ${server}`)));
+    socket.once('error', finish);
+    socket.on('data', (chunk: Buffer) => chunks.push(chunk));
+    socket.once('end', () => finish());
+    socket.connect(43, server, () => socket.write(`${query}\r\n`));
+  });
 }

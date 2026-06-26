@@ -41,4 +41,46 @@ describe('DomainWatchService', () => {
     expect(watches.findOneByOrFail).toHaveBeenCalledWith({ id: 'watch-1', userId: 'auth-user-1' });
     expect(watches.save).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
+
+  it('rechecks all watches for the authenticated user and refreshes availability state', async () => {
+    const existingWatch: any = {
+      id: 'watch-1',
+      userId: 'auth-user-1',
+      fqdn: 'example.com',
+      lastAvailability: 'registered',
+      lastExpiresAt: null,
+      lastRegistryStatuses: [],
+      lifecycleStage: 'active',
+      dropCandidateAt: null,
+      lastCheckAt: null,
+      nextCheckAt: null,
+    };
+    const watches: any = {
+      find: jest.fn(async () => [existingWatch]),
+      save: jest.fn(async (input: any) => input),
+    };
+    const availability: any = {
+      checkOne: jest.fn(async () => ({
+        fqdn: 'example.com',
+        availability: 'available',
+        expiresAt: null,
+        registryStatuses: [],
+      })),
+    };
+    const service = new DomainWatchService(watches, {} as any, availability);
+
+    const result = await service.recheckWatches('auth-user-1');
+
+    expect(watches.find).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'auth-user-1' } }));
+    expect(availability.checkOne).toHaveBeenCalledWith('example.com');
+    expect(watches.save).toHaveBeenCalledWith(expect.objectContaining({
+      lastAvailability: 'available',
+      lifecycleStage: 'available',
+    }));
+    expect(result).toMatchObject({
+      checked: 1,
+      failed: 0,
+      watches: [expect.objectContaining({ lastAvailability: 'available' })],
+    });
+  });
 });

@@ -7,36 +7,53 @@ type AiCompleteResponse = {
   text?: string;
 };
 
+const DEFAULT_AI_TIMEOUT_MS = 8000;
+
 @Injectable()
 export class AiClient {
   async suggestDomainNames(description: string, count: number): Promise<string[]> {
     const baseUrl = process.env.AI_SERVICE_URL;
     if (!baseUrl) return [];
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/ai/complete`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        ...(process.env.AI_SERVICE_TOKEN ? { authorization: `Bearer ${process.env.AI_SERVICE_TOKEN}` } : {}),
-      },
-      body: JSON.stringify({
-        model_tier: process.env.AI_MODEL_TIER || 'smart',
-        system_prompt: 'Suggest strong, short, brandable domain second-level names for a real business. Avoid generic filler, unrelated words, and explanations. Return JSON array of lowercase ASCII strings only.',
-        user_prompt: `Business or service description: ${description}\nReturn ${count} distinct candidates.`,
-        output_schema: { type: 'array', items: { type: 'string' } },
-        agent_service_scope: 'domain-research',
-        agent_slug: 'domain-suggestion',
-      }),
-    });
-    if (!response.ok) return [];
-    const payload = (await response.json()) as AiCompleteResponse;
-    const raw = typeof payload.output === 'string'
-      ? payload.output
-      : typeof payload.content === 'string'
-        ? payload.content
-        : typeof payload.text === 'string'
-          ? payload.text
-          : JSON.stringify(payload.result || []);
-    return this.extractCandidateNames(raw).slice(0, count);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.aiTimeoutMs());
+
+    try {
+      const response = await fetch(`${baseUrl.replace(/\/$/, '')}/ai/complete`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          ...(process.env.AI_SERVICE_TOKEN ? { authorization: `Bearer ${process.env.AI_SERVICE_TOKEN}` } : {}),
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model_tier: process.env.AI_MODEL_TIER || 'smart',
+          system_prompt: 'Suggest strong, short, brandable domain second-level names for a real business. Avoid generic filler, unrelated words, and explanations. Return JSON array of lowercase ASCII strings only.',
+          user_prompt: `Business or service description: ${description}\nReturn ${count} distinct candidates.`,
+          output_schema: { type: 'array', items: { type: 'string' } },
+          agent_service_scope: 'domain-research',
+          agent_slug: 'domain-suggestion',
+        }),
+      });
+      if (!response.ok) return [];
+      const payload = (await response.json()) as AiCompleteResponse;
+      const raw = typeof payload.output === 'string'
+        ? payload.output
+        : typeof payload.content === 'string'
+          ? payload.content
+          : typeof payload.text === 'string'
+            ? payload.text
+            : JSON.stringify(payload.result || []);
+      return this.extractCandidateNames(raw).slice(0, count);
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private aiTimeoutMs(): number {
+    const configured = Number.parseInt(process.env.AI_SERVICE_TIMEOUT_MS || '', 10);
+    return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_AI_TIMEOUT_MS;
   }
 
   private extractCandidateNames(raw: string): string[] {

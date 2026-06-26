@@ -73,6 +73,46 @@ export class DomainWatchService {
     return this.watches.save(watch);
   }
 
+  async recheckWatches(userId: string): Promise<{ checked: number; failed: number; watches: DomainWatch[] }> {
+    const watches = await this.watches.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      take: 200,
+    });
+    let checked = 0;
+    let failed = 0;
+
+    for (const watch of watches) {
+      try {
+        await this.recheckWatchAvailability(watch);
+        checked += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+
+    return { checked, failed, watches };
+  }
+
+  private async recheckWatchAvailability(watch: DomainWatch): Promise<DomainWatch> {
+    const now = new Date();
+    const check = await this.availability.checkOne(watch.fqdn);
+    const plan = planDomainLifecycle(
+      { availability: check.availability, expiresAt: check.expiresAt || null, registryStatuses: check.registryStatuses || [] },
+      now,
+      watch.dropCandidateAt || null,
+    );
+
+    watch.lastAvailability = check.availability;
+    watch.lastExpiresAt = check.expiresAt || null;
+    watch.lastRegistryStatuses = check.registryStatuses || [];
+    watch.lifecycleStage = plan.stage;
+    watch.dropCandidateAt = plan.dropCandidateAt;
+    watch.lastCheckAt = now;
+    watch.nextCheckAt = plan.nextCheckAt;
+    return this.watches.save(watch);
+  }
+
   async watchHistory(id: string, userId: string): Promise<{ watch: DomainWatch; checks: DomainCheck[] }> {
     const watch = await this.watches.findOneByOrFail({ id, userId });
     const checks = await this.checks.find({ where: { fqdn: watch.fqdn }, order: { checkedAt: 'DESC' }, take: 100 });

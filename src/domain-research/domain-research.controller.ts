@@ -49,6 +49,12 @@ export class DomainResearchController {
   }
 
   @UseGuards(AuthUserGuard)
+  @Post('watches/recheck')
+  recheckWatches(@CurrentAuthUser() user: AuthenticatedUser) {
+    return this.watches.recheckWatches(user.id);
+  }
+
+  @UseGuards(AuthUserGuard)
   @Patch('watches/:id')
   updateWatch(@Param('id') id: string, @Body() dto: UpdateWatchDto, @CurrentAuthUser() user: AuthenticatedUser) {
     return this.watches.updateWatch(id, user.id, dto);

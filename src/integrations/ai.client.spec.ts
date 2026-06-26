@@ -24,6 +24,15 @@ describe('AiClient', () => {
     await expect(new AiClient().suggestDomainNames('test', 5)).resolves.toEqual(['brandpilot', 'domainflow']);
     request = (global.fetch as jest.Mock).mock.calls[0][1];
     expect(JSON.parse(String(request?.body))).toMatchObject({ model_tier: 'smart' });
+    expect(request?.signal).toBeDefined();
+  });
+
+  it('returns an empty list when the AI request rejects or times out', async () => {
+    global.fetch = jest.fn(async () => {
+      throw new DOMException('aborted', 'AbortError');
+    }) as jest.Mock;
+
+    await expect(new AiClient().suggestDomainNames('test', 5)).resolves.toEqual([]);
   });
 
   it('extracts second-level names from object values returned by small models', async () => {
