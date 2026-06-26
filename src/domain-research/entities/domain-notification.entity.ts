@@ -1,5 +1,13 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
+export type DomainNotificationType =
+  | 'domain_available'
+  | 'drop_tracking_prompt'
+  | 'drop_24h_warning'
+  | 'drop_1h_warning'
+  | 'domain_renewed'
+  | 'check_failed';
+
 @Entity('domain_notifications')
 export class DomainNotification {
   @PrimaryGeneratedColumn('uuid')
@@ -10,7 +18,10 @@ export class DomainNotification {
   watchId!: string;
 
   @Column({ type: 'varchar', length: 64 })
-  type!: 'domain_available' | 'domain_renewed' | 'check_failed';
+  type!: DomainNotificationType;
+
+  @Column({ name: 'dedupe_key', type: 'varchar', length: 160, nullable: true })
+  dedupeKey?: string | null;
 
   @Column({ type: 'varchar', length: 32, default: 'email' })
   channel!: string;
@@ -20,6 +31,9 @@ export class DomainNotification {
 
   @Column({ type: 'varchar', length: 32, default: 'pending' })
   status!: 'pending' | 'sent' | 'failed';
+
+  @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
+  payload!: Record<string, unknown>;
 
   @Column({ type: 'text', nullable: true })
   error?: string | null;

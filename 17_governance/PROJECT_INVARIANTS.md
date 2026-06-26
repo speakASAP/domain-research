@@ -7,3 +7,4 @@
 5. Notifications are delegated to notifications-microservice.
 6. AI calls are delegated to ai-microservice.
 7. Documentation retrieval uses docs-rag-microservice.
+8. Drop-tracking notifications must state estimated timing unless a provider status gives stronger evidence.

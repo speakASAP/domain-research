@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS domain_checks (
   registrar varchar(255),
   expires_at timestamptz,
   nameservers jsonb NOT NULL DEFAULT '[]'::jsonb,
+  registry_statuses jsonb NOT NULL DEFAULT '[]'::jsonb,
   raw_hash varchar(128),
   error text,
   checked_at timestamptz NOT NULL DEFAULT now()
@@ -47,6 +48,10 @@ CREATE TABLE IF NOT EXISTS domain_watches (
   user_id varchar(128),
   notification_email varchar(320),
   enabled boolean NOT NULL DEFAULT true,
+  drop_tracking_consent varchar(32) NOT NULL DEFAULT 'pending',
+  lifecycle_stage varchar(32) NOT NULL DEFAULT 'unknown',
+  drop_candidate_at timestamptz,
+  last_registry_statuses jsonb NOT NULL DEFAULT '[]'::jsonb,
   next_check_at timestamptz,
   last_check_at timestamptz,
   last_availability varchar(32) NOT NULL DEFAULT 'unknown',
@@ -59,18 +64,30 @@ CREATE TABLE IF NOT EXISTS domain_notifications (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   watch_id uuid NOT NULL,
   type varchar(64) NOT NULL,
+  dedupe_key varchar(160),
   channel varchar(32) NOT NULL DEFAULT 'email',
   recipient_ref varchar(320),
   status varchar(32) NOT NULL DEFAULT 'pending',
+  payload jsonb NOT NULL DEFAULT '{}'::jsonb,
   error text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+
+ALTER TABLE domain_checks ADD COLUMN IF NOT EXISTS registry_statuses jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE domain_watches ADD COLUMN IF NOT EXISTS drop_tracking_consent varchar(32) NOT NULL DEFAULT 'pending';
+ALTER TABLE domain_watches ADD COLUMN IF NOT EXISTS lifecycle_stage varchar(32) NOT NULL DEFAULT 'unknown';
+ALTER TABLE domain_watches ADD COLUMN IF NOT EXISTS drop_candidate_at timestamptz;
+ALTER TABLE domain_watches ADD COLUMN IF NOT EXISTS last_registry_statuses jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE domain_notifications ADD COLUMN IF NOT EXISTS dedupe_key varchar(160);
+ALTER TABLE domain_notifications ADD COLUMN IF NOT EXISTS payload jsonb NOT NULL DEFAULT '{}'::jsonb;
 
 CREATE INDEX IF NOT EXISTS idx_domain_checks_fqdn ON domain_checks(fqdn);
 CREATE INDEX IF NOT EXISTS idx_domain_watches_fqdn ON domain_watches(fqdn);
 CREATE INDEX IF NOT EXISTS idx_domain_watches_user_id ON domain_watches(user_id);
 CREATE INDEX IF NOT EXISTS idx_domain_watches_next_check_at ON domain_watches(next_check_at);
 CREATE INDEX IF NOT EXISTS idx_domain_notifications_watch_id ON domain_notifications(watch_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_domain_notifications_dedupe ON domain_notifications(watch_id, type, dedupe_key) WHERE dedupe_key IS NOT NULL;
 `;
 
 async function main() {

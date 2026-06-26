@@ -52,6 +52,7 @@ export class AvailabilityService {
         registrar: extractRegistrar(payload),
         expiresAt: extractExpiry(payload),
         nameservers: extractNameservers(payload),
+        registryStatuses: extractRegistryStatuses(payload),
         rawHash: sha256(text),
       });
     } catch (error) {
@@ -110,4 +111,13 @@ function extractNameservers(payload: Record<string, unknown>): string[] {
   return nameservers
     .map((item) => (typeof item.ldhName === 'string' ? item.ldhName.toLowerCase() : undefined))
     .filter((item): item is string => Boolean(item));
+}
+
+
+function extractRegistryStatuses(payload: Record<string, unknown>): string[] {
+  const statuses = Array.isArray(payload.status) ? payload.status : [];
+  return Array.from(new Set(statuses
+    .map((item) => String(item).toLowerCase().replace(/[ _]+/g, '-').trim())
+    .filter(Boolean)
+    .sort()));
 }

@@ -7,6 +7,7 @@ import { UpdateWatchDto } from '../dto/update-watch.dto';
 import { DomainCheck } from '../entities/domain-check.entity';
 import { DomainWatch } from '../entities/domain-watch.entity';
 import { AvailabilityService } from './availability.service';
+import { planDomainLifecycle } from './domain-lifecycle';
 
 @Injectable()
 export class DomainWatchService {
@@ -23,16 +24,26 @@ export class DomainWatchService {
     }
 
     const check = await this.availability.checkOne(dto.fqdn);
+    const now = new Date();
+    const plan = planDomainLifecycle(
+      { availability: check.availability, expiresAt: check.expiresAt || null, registryStatuses: check.registryStatuses || [] },
+      now,
+    );
+
     return this.watches.save(
       this.watches.create({
         fqdn: check.fqdn,
         userId: user.id,
         notificationEmail,
         enabled: dto.enabled ?? true,
+        dropTrackingConsent: 'pending',
+        lifecycleStage: plan.stage,
+        dropCandidateAt: plan.dropCandidateAt,
+        lastRegistryStatuses: check.registryStatuses || [],
         lastAvailability: check.availability,
         lastExpiresAt: check.expiresAt || null,
-        lastCheckAt: new Date(),
-        nextCheckAt: nextCheckDate(check.expiresAt || null),
+        lastCheckAt: now,
+        nextCheckAt: plan.nextCheckAt,
       }),
     );
   }
@@ -48,6 +59,17 @@ export class DomainWatchService {
   async updateWatch(id: string, userId: string, dto: UpdateWatchDto): Promise<DomainWatch> {
     const watch = await this.watches.findOneByOrFail({ id, userId });
     if (dto.enabled !== undefined) watch.enabled = dto.enabled;
+    if (dto.dropTrackingConsent !== undefined) {
+      watch.dropTrackingConsent = dto.dropTrackingConsent;
+      if (dto.dropTrackingConsent === 'declined') {
+        watch.enabled = false;
+        watch.nextCheckAt = null;
+      }
+      if (dto.dropTrackingConsent === 'accepted') {
+        watch.enabled = true;
+        if (!watch.nextCheckAt) watch.nextCheckAt = new Date();
+      }
+    }
     return this.watches.save(watch);
   }
 
@@ -56,15 +78,6 @@ export class DomainWatchService {
     const checks = await this.checks.find({ where: { fqdn: watch.fqdn }, order: { checkedAt: 'DESC' }, take: 100 });
     return { watch, checks };
   }
-}
-
-export function nextCheckDate(expiresAt: Date | null): Date {
-  if (!expiresAt) {
-    return new Date(Date.now() + 24 * 60 * 60 * 1000);
-  }
-  const next = new Date(expiresAt);
-  next.setUTCHours(8, 0, 0, 0);
-  return next;
 }
 
 function normalizeEmail(value: string): string {

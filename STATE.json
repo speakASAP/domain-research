@@ -1,8 +1,8 @@
 {
   "project": "domain-research",
   "status": "production_deployed",
-  "currentGoal": "Goal 1: Bootstrap Service Foundation",
-  "currentTask": "TASK-001",
+  "currentGoal": "Goal 6: Expiring Domain Drop Tracking",
+  "currentTask": "TASK-004",
   "assumptions": {
     "domain": "domain-research.alfares.cz",
     "port": 4860,
@@ -33,5 +33,5 @@
     "productionHealth": "passed",
     "publicUrl": "https://domain-research.alfares.cz"
   },
-  "updatedAt": "2026-06-26T00:00:00Z"
+  "updatedAt": "2026-06-26T16:16:31Z"
 }

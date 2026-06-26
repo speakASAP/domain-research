@@ -154,3 +154,16 @@ curl -k https://domain-research.alfares.cz/health
 curl -k -X POST https://domain-research.alfares.cz/api/domain-suggestions ...
 # HTTP 201-equivalent Nest response, status=completed, candidateCount=3
 ```
+
+## TASK-004 Expiring Domain Drop Tracking
+
+Status: in progress.
+
+Implemented in this pass:
+
+- RDAP registry statuses captured as normalized evidence.
+- Watch lifecycle state, drop estimate, and drop-tracking consent added.
+- Scheduler now dedupes lifecycle notifications and keeps availability notification gated on a fresh provider check.
+- Expiry recheck CronJob cadence changed to every 5 minutes so per-watch `nextCheckAt` can hit hourly/final drop windows.
+
+Validation: pending command execution.

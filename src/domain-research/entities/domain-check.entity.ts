@@ -27,6 +27,9 @@ export class DomainCheck {
   @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
   nameservers!: string[];
 
+  @Column({ name: 'registry_statuses', type: 'jsonb', default: () => "'[]'::jsonb" })
+  registryStatuses!: string[];
+
   @Column({ name: 'raw_hash', type: 'varchar', length: 128, nullable: true })
   rawHash?: string | null;
 

@@ -31,3 +31,9 @@ Add provider adapters for registrar-backed availability and purchase links after
 Status: pending
 
 Deploy to Kubernetes, register in ecosystem docs, trigger docs-rag ingestion, and validate live smoke tests.
+
+## Goal 6: Expiring Domain Drop Tracking
+
+Status: in_progress
+
+Warn users before watched domains are likely to leave post-expiration protection and become available. Preserve current-provider-check evidence before any availability notification.

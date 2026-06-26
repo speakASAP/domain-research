@@ -286,19 +286,38 @@ async function loadWatches() {
   try {
     const watches = await api('/watches');
     watchList.innerHTML = watches.map((watch) => `
-      <div class="watch">
+      <div class="watch" data-watch-id="${escapeHtml(watch.id)}">
         <span></span>
         <span>
           <span class="domain">${escapeHtml(watch.fqdn)}</span>
-          <span class="meta">next check ${escapeHtml(formatDate(watch.nextCheckAt))}</span>
+          <span class="meta">${escapeHtml(watch.lifecycleStage || 'unknown')} · next check ${escapeHtml(formatDate(watch.nextCheckAt))}</span>
+          <span class="meta">drop estimate ${escapeHtml(formatDate(watch.dropCandidateAt))}</span>
         </span>
         <span class="badge ${watch.lastAvailability === 'registered' ? 'warning' : ''}">${escapeHtml(watch.lastAvailability)}</span>
+        <span class="watch-actions">
+          <button type="button" data-watch-action="accepted">Track drop</button>
+          <button type="button" class="secondary" data-watch-action="declined">Stop</button>
+        </span>
       </div>
     `).join('') || '<p class="meta">No watched domains yet.</p>';
   } catch (error) {
     watchList.innerHTML = `<p class="meta">${escapeHtml(error.message)}</p>`;
   }
 }
+
+
+watchList.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-watch-action]');
+  if (!button) return;
+  const row = button.closest('[data-watch-id]');
+  const id = row?.dataset.watchId;
+  if (!id) return;
+  await api(`/watches/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ dropTrackingConsent: button.dataset.watchAction }),
+  });
+  await loadWatches();
+});
 
 function formatDate(value) {
   return value ? new Date(value).toLocaleString() : 'not scheduled';

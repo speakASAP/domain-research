@@ -1,5 +1,8 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
+export type DomainLifecycleStage = 'active' | 'expired' | 'redemption' | 'pending_delete' | 'drop_imminent' | 'available' | 'unknown';
+export type DropTrackingConsent = 'pending' | 'accepted' | 'declined';
+
 @Entity('domain_watches')
 export class DomainWatch {
   @PrimaryGeneratedColumn('uuid')
@@ -18,6 +21,18 @@ export class DomainWatch {
 
   @Column({ type: 'boolean', default: true })
   enabled!: boolean;
+
+  @Column({ name: 'drop_tracking_consent', type: 'varchar', length: 32, default: 'pending' })
+  dropTrackingConsent!: DropTrackingConsent;
+
+  @Column({ name: 'lifecycle_stage', type: 'varchar', length: 32, default: 'unknown' })
+  lifecycleStage!: DomainLifecycleStage;
+
+  @Column({ name: 'drop_candidate_at', type: 'timestamptz', nullable: true })
+  dropCandidateAt?: Date | null;
+
+  @Column({ name: 'last_registry_statuses', type: 'jsonb', default: () => "'[]'::jsonb" })
+  lastRegistryStatuses!: string[];
 
   @Index()
   @Column({ name: 'next_check_at', type: 'timestamptz', nullable: true })

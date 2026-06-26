@@ -262,6 +262,30 @@ button:disabled {
   margin-bottom: 14px;
 }
 
+.watch-actions {
+  grid-column: 2 / 4;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.watch-actions button {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+button.secondary {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: #fff;
+}
+
+button.secondary:hover {
+  color: var(--text);
+  background: #f2f5f8;
+}
+
 @media (max-width: 720px) {
   .app-shell {
     padding: 18px;
@@ -294,5 +318,10 @@ button:disabled {
   .watch .badge {
     grid-column: 2;
     width: fit-content;
+  }
+
+  .watch-actions {
+    grid-column: 2;
+    justify-content: flex-start;
   }
 }
