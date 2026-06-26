@@ -23,12 +23,13 @@ Completed:
 - Explicit migration script added as `scripts/migrate.js`.
 - Deploy script now runs migrations through a Kubernetes Job with ConfigMap+ExternalSecret env.
 - Validation after deployment hardening passed: `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, `npm run gate:deployment`, and manifest dry-run.
+- Production deployment completed on Kubernetes.
+- AI service-token issuance completed for `domain-research`; `AI_SERVICE_TOKEN` in `secret/prod/domain-research` now contains an AI-compatible service JWT and the deployment was restarted from the synced ExternalSecret.
 
 Pending:
 
-- Production deployment completed on Kubernetes.
 - Hosted Auth role/client registration.
-- Real AI/notification service-token issuance.
+- Notification service-token issuance remains blocked by `[MISSING: domain-research-specific notifications machine-auth contract]`.
 
 ## Production Deploy Evidence
 
@@ -62,3 +63,33 @@ curl -k -X POST https://domain-research.alfares.cz/api/domain-suggestions ...
 ```
 
 Deploy note: the migration Job initially exceeded the deploy script timeout because the cluster took several minutes to pull images from the local registry. The image pull eventually completed, the migration Job succeeded, and runtime manifests were applied manually from the same commit.
+
+## Service Token Evidence
+
+Date: 2026-06-26
+
+AI integration:
+
+```bash
+vault kv patch secret/prod/domain-research AI_SERVICE_TOKEN=<redacted>
+kubectl -n statex-apps annotate externalsecret domain-research-secret force-sync=<timestamp> --overwrite
+kubectl -n statex-apps rollout restart deployment/domain-research
+kubectl -n statex-apps rollout status deployment/domain-research --timeout=180s
+# deployment "domain-research" successfully rolled out
+
+kubectl -n statex-apps exec -i deploy/domain-research -- node -
+# POST http://ai-microservice.statex-apps.svc.cluster.local:3380/ai/complete
+# HTTP 200; AI service accepted the domain-research service token.
+# Body reported AGENT_NOT_AVAILABLE for agent_slug=domain-research-smoke, which is agent-registry configuration debt, not token authentication failure.
+```
+
+Notifications integration:
+
+```bash
+kubectl -n statex-apps exec -i deploy/domain-research -- node -
+# GET http://notifications-microservice.statex-apps.svc.cluster.local:3368/admin/stats
+# Authorization: Bearer <redacted NOTIFICATION_SERVICE_TOKEN>
+# HTTP 401 {"message":"Invalid token","error":"Unauthorized","statusCode":401}
+```
+
+Read-only research across `auth-microservice` and `notifications-microservice` found no existing issuer/API/seed path that produces a `domain-research` machine token accepted by notifications without either copying the shared notifications `SERVICE_TOKEN` or changing the notifications service-auth contract.
