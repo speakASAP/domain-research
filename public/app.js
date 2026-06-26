@@ -493,8 +493,8 @@ watchDomainChips?.addEventListener('click', (event) => {
   watchDomainInput?.focus();
 });
 
-watchForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
+async function handleWatchSubmit(event) {
+  event?.preventDefault();
   const domains = collectWatchDomains();
   if (!domains.length) {
     watchDomainInput?.focus();
@@ -526,7 +526,10 @@ watchForm.addEventListener('submit', async (event) => {
   if (failed.length) {
     watchList.insertAdjacentHTML('afterbegin', `<p class="meta">Could not create: ${escapeHtml(failed.map((item) => item.fqdn).join(', '))}</p>`);
   }
-});
+}
+
+watchForm?.addEventListener('submit', handleWatchSubmit);
+document.getElementById('createWatchesButton')?.addEventListener('click', handleWatchSubmit);
 
 [descriptionInput, tldsInput, countInput, watchDomainInput].forEach((input) => {
   input?.addEventListener('input', autosaveSessionDraft);
