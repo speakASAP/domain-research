@@ -67,8 +67,25 @@ export class DomainWatchService {
       }
       if (dto.dropTrackingConsent === 'accepted') {
         watch.enabled = true;
-        if (!watch.nextCheckAt) watch.nextCheckAt = new Date();
+        if (!watch.nextCheckAt && shouldScheduleOnConsent(watch)) watch.nextCheckAt = new Date();
       }
+    }
+    if (dto.manualExpiresAt !== undefined) {
+      const expiresAt = parseManualDate(dto.manualExpiresAt, 'manualExpiresAt');
+      const now = new Date();
+      const plan = planDomainLifecycle(
+        { availability: watch.lastAvailability || 'registered', expiresAt, registryStatuses: watch.lastRegistryStatuses || [] },
+        now,
+        null,
+      );
+      watch.lastExpiresAt = expiresAt;
+      watch.lifecycleStage = plan.stage;
+      watch.dropCandidateAt = plan.dropCandidateAt;
+      watch.nextCheckAt = plan.nextCheckAt;
+    }
+    if (dto.manualNextCheckAt !== undefined) {
+      watch.nextCheckAt = parseManualDate(dto.manualNextCheckAt, 'manualNextCheckAt');
+      watch.enabled = true;
     }
     return this.watches.save(watch);
   }
@@ -128,4 +145,22 @@ export class DomainWatchService {
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function parseManualDate(value: string, field: string): Date {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new BadRequestException(`${field} must be a valid ISO-8601 date`);
+  }
+  return date;
+}
+
+function shouldScheduleOnConsent(watch: DomainWatch): boolean {
+  return Boolean(
+    watch.lastExpiresAt ||
+    watch.dropCandidateAt ||
+    watch.lifecycleStage === 'redemption' ||
+    watch.lifecycleStage === 'pending_delete' ||
+    watch.lifecycleStage === 'drop_imminent',
+  );
 }

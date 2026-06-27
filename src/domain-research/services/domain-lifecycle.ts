@@ -38,7 +38,7 @@ export function planDomainLifecycle(input: DomainLifecycleInput, now = new Date(
 
   const expiresAt = normalizeDate(input.expiresAt || null);
   if (!expiresAt) {
-    return { stage: 'unknown', dropCandidateAt: existingDropCandidateAt || null, nextCheckAt: new Date(now.getTime() + DAY_MS) };
+    return { stage: 'unknown', dropCandidateAt: existingDropCandidateAt || null, nextCheckAt: null };
   }
 
   const dropCandidateAt = existingDropCandidateAt && existingDropCandidateAt.getTime() > now.getTime()

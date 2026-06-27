@@ -21,6 +21,7 @@ const MAX_DRAFT_CANDIDATES = 100;
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 const LEGACY_ACCESS_KEYS = ['auth_profile_access', 'auth_admin_access'];
 const CUSTOM_CANDIDATE_SCORE = 70;
+const WHOIS_BASE_URL = 'https://www.whois.com/whois/';
 
 const candidateList = document.getElementById('candidateList');
 const watchList = document.getElementById('watchList');
@@ -741,10 +742,17 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
             <td>
               <span class="domain">${escapeHtml(watch.fqdn)}</span>
               <span class="meta">${escapeHtml(watch.lifecycleStage || 'unknown')} · ${escapeHtml(watch.lastAvailability || 'unknown')}</span>
+              ${manualCheckHint(watch)}
             </td>
-            <td>${escapeHtml(formatDate(watch.lastExpiresAt, 'unknown'))}</td>
+            <td>
+              <span>${escapeHtml(formatDate(watch.lastExpiresAt, 'unknown'))}</span>
+              <input class="watch-date-input" type="datetime-local" data-watch-expires value="${escapeHtml(toDateTimeLocalValue(watch.lastExpiresAt))}" aria-label="Manual expiry date for ${escapeHtml(watch.fqdn)}" />
+            </td>
             <td>${escapeHtml(formatDate(watch.dropCandidateAt, 'not estimated'))}</td>
-            <td>${escapeHtml(formatDate(watch.nextCheckAt, 'not scheduled'))}</td>
+            <td>
+              <span>${escapeHtml(formatDate(watch.nextCheckAt, 'not scheduled'))}</span>
+              <input class="watch-date-input" type="datetime-local" data-watch-next-check value="${escapeHtml(toDateTimeLocalValue(watch.nextCheckAt))}" aria-label="Manual next check date for ${escapeHtml(watch.fqdn)}" />
+            </td>
             <td>
               <label class="notify-toggle">
                 <input
@@ -757,6 +765,8 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
               </label>
             </td>
             <td>
+              <a class="secondary compact whois-link" href="${escapeHtml(whoisUrl(watch.fqdn))}" target="_blank" rel="noopener noreferrer">Whois</a>
+              <button type="button" class="secondary compact" data-watch-save-dates aria-label="Save manual dates for ${escapeHtml(watch.fqdn)}">Save dates</button>
               <button type="button" class="secondary danger compact" data-watch-delete aria-label="Delete ${escapeHtml(watch.fqdn)}">Delete</button>
             </td>
           </tr>
@@ -767,6 +777,28 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
 }
 
 watchList.addEventListener('click', async (event) => {
+  const saveDatesButton = event.target.closest('[data-watch-save-dates]');
+  if (saveDatesButton) {
+    const row = saveDatesButton.closest('[data-watch-id]');
+    const id = row?.dataset.watchId;
+    if (!id) return;
+    const expiresValue = row.querySelector('[data-watch-expires]')?.value || '';
+    const nextCheckValue = row.querySelector('[data-watch-next-check]')?.value || '';
+    const payload = {};
+    if (expiresValue) payload.manualExpiresAt = fromDateTimeLocalValue(expiresValue);
+    if (nextCheckValue) payload.manualNextCheckAt = fromDateTimeLocalValue(nextCheckValue);
+    if (!payload.manualExpiresAt && !payload.manualNextCheckAt) return;
+    saveDatesButton.disabled = true;
+    try {
+      await api(`/watches/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      await loadWatches();
+    } catch (error) {
+      saveDatesButton.disabled = false;
+      watchList.insertAdjacentHTML('afterbegin', `<p class="meta">${escapeHtml(error.message)}</p>`);
+    }
+    return;
+  }
+
   const button = event.target.closest('[data-watch-delete]');
   if (!button) return;
   const row = button.closest('[data-watch-id]');
@@ -797,6 +829,27 @@ watchList.addEventListener('change', async (event) => {
 
 function formatDate(value, fallback = 'not scheduled') {
   return value ? new Date(value).toLocaleString() : fallback;
+}
+
+function manualCheckHint(watch) {
+  if (watch.lastExpiresAt || watch.dropCandidateAt || watch.nextCheckAt) return '';
+  if (watch.lastAvailability === 'available' || watch.lifecycleStage === 'available') return '';
+  return '<span class="meta manual-check-hint">Manual Whois check needed</span>';
+}
+
+function whoisUrl(fqdn) {
+  return `${WHOIS_BASE_URL}${encodeURIComponent(fqdn || '')}`;
+}
+
+function toDateTimeLocalValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function fromDateTimeLocalValue(value) {
+  return new Date(value).toISOString();
 }
 
 function escapeHtml(value) {

@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsOptional } from 'class-validator';
+import { IsBoolean, IsIn, IsISO8601, IsOptional } from 'class-validator';
 
 export class UpdateWatchDto {
   @IsOptional()
@@ -8,4 +8,12 @@ export class UpdateWatchDto {
   @IsOptional()
   @IsIn(['pending', 'accepted', 'declined'])
   dropTrackingConsent?: 'pending' | 'accepted' | 'declined';
+
+  @IsOptional()
+  @IsISO8601()
+  manualExpiresAt?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  manualNextCheckAt?: string;
 }

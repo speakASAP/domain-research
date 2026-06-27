@@ -37,4 +37,16 @@ describe('planDomainLifecycle', () => {
     expect(plan.stage).toBe('redemption');
     expect(plan.dropCandidateAt?.toISOString()).toBe('2026-07-31T12:00:00.000Z');
   });
+
+  it('does not schedule automated checks when expiry and lifecycle evidence are unknown', () => {
+    const plan = planDomainLifecycle({
+      availability: 'registered',
+      expiresAt: null,
+      registryStatuses: [],
+    }, now);
+
+    expect(plan.stage).toBe('unknown');
+    expect(plan.dropCandidateAt).toBeNull();
+    expect(plan.nextCheckAt).toBeNull();
+  });
 });

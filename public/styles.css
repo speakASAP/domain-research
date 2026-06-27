@@ -370,6 +370,27 @@ button:disabled {
   margin-top: 2px;
 }
 
+.manual-check-hint {
+  color: var(--warning);
+  font-weight: 800;
+}
+
+.watch-date-input {
+  width: 100%;
+  min-width: 180px;
+  margin-top: 6px;
+  padding: 7px 8px;
+  font-size: 13px;
+}
+
+.whois-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-right: 6px;
+}
+
 .notify-toggle {
   display: inline-flex;
   grid-template-columns: none;
