@@ -124,6 +124,15 @@ input {
   background: #fff;
 }
 
+.wide-field {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.wide-field textarea {
+  min-height: 74px;
+}
+
 textarea {
   resize: vertical;
 }
@@ -213,6 +222,17 @@ button:disabled {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.button-group button {
+  padding: 9px 12px;
 }
 
 .custom-candidate-form {
@@ -327,7 +347,7 @@ button:disabled {
 
 .watch-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 820px;
   border-collapse: collapse;
 }
 
@@ -379,6 +399,20 @@ button.secondary:hover {
   background: #f2f5f8;
 }
 
+button.danger {
+  color: #9f1239;
+}
+
+button.danger:hover {
+  color: #881337;
+  background: #fff1f2;
+}
+
+button.compact {
+  padding: 7px 9px;
+  font-size: 12px;
+}
+
 @media (max-width: 720px) {
   .app-shell {
     padding: 18px;
@@ -391,6 +425,14 @@ button.secondary:hover {
   .grid {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .button-group {
+    justify-content: stretch;
+  }
+
+  .button-group button {
+    width: 100%;
   }
 
   .top-actions {
@@ -415,6 +457,6 @@ button.secondary:hover {
   }
 
   .watch-table {
-    min-width: 680px;
+    min-width: 760px;
   }
 }

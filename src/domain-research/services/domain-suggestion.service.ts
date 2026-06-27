@@ -39,7 +39,7 @@ export class DomainSuggestionService {
       }),
     );
 
-    const names = await this.generateNames(dto.description, dto.count || 15);
+    const names = await this.generateNames(dto.description, dto.count || 15, dto.seedNames);
     const rows = names.flatMap((name, index) =>
       tlds.map((tld) =>
         this.candidates.create({
@@ -70,7 +70,7 @@ export class DomainSuggestionService {
     return tlds.length ? tlds : SUPPORTED_TLDS;
   }
 
-  private async generateNames(description: string, count: number): Promise<string[]> {
+  private async generateNames(description: string, count: number, seedNames: string[] = []): Promise<string[]> {
     const aiNames = await this.ai.suggestDomainNames(description, count).catch(() => []);
     const seed = description
       .toLowerCase()
@@ -91,9 +91,23 @@ export class DomainSuggestionService {
       `${secondary}base`,
       `${secondary}flow`,
     ];
-    return Array.from(new Set([...aiNames, ...heuristic]))
-      .map((name) => name.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, ''))
-      .filter((name) => name.length >= 3 && name.length <= 24)
+    return this.normalizeCandidateNames([...this.normalizeSeedNames(seedNames), ...aiNames, ...heuristic])
       .slice(0, count);
+  }
+
+  private normalizeSeedNames(seedNames: string[]): string[] {
+    return seedNames
+      .flatMap((name) => String(name || '').split(/[,\s]+/))
+      .map((name) => name.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0])
+      .map((name) => name.split('.')[0])
+      .map((name) => name.replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, ''))
+      .filter(Boolean);
+  }
+
+  private normalizeCandidateNames(names: string[]): string[] {
+    const normalized = names
+      .map((name) => String(name || '').toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, ''))
+      .filter((name) => name.length >= 3 && name.length <= 24);
+    return Array.from(new Set(normalized));
   }
 }

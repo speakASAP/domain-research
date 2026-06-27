@@ -14,6 +14,11 @@ export class CreateSuggestionDto {
   tlds?: string[];
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  seedNames?: string[];
+
+  @IsOptional()
   @IsInt()
   @Min(3)
   @Max(50)

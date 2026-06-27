@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { AvailabilityCheckDto } from './dto/availability-check.dto';
 import { CreateWatchDto } from './dto/create-watch.dto';
@@ -58,6 +58,12 @@ export class DomainResearchController {
   @Patch('watches/:id')
   updateWatch(@Param('id') id: string, @Body() dto: UpdateWatchDto, @CurrentAuthUser() user: AuthenticatedUser) {
     return this.watches.updateWatch(id, user.id, dto);
+  }
+
+  @UseGuards(AuthUserGuard)
+  @Delete('watches/:id')
+  deleteWatch(@Param('id') id: string, @CurrentAuthUser() user: AuthenticatedUser) {
+    return this.watches.deleteWatch(id, user.id);
   }
 
   @UseGuards(AuthUserGuard)

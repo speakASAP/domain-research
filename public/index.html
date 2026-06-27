@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Domain Research</title>
-    <link rel="stylesheet" href="/styles.css?v=watch-ui-20260626" />
+    <link rel="stylesheet" href="/styles.css?v=watch-ui-20260627" />
   </head>
   <body>
     <main class="app-shell">
@@ -30,6 +30,10 @@
           </div>
           <textarea id="description" required rows="5" placeholder="Example: AI assistant that helps founders find available domain names and tracks expiring domains"></textarea>
           <p id="voiceStatus" class="voice-status" role="status" aria-live="polite">Chrome voice input ready.</p>
+          <label class="wide-field">
+            Domain names to test
+            <textarea id="seedDomains" rows="3" placeholder="testhub, gettest, testpilot"></textarea>
+          </label>
           <div class="grid">
             <label>
               TLDs
@@ -46,7 +50,11 @@
         <section class="panel">
           <div class="section-title">
             <h2>Candidates</h2>
-            <button id="checkSelected" type="button">Check selected</button>
+            <div class="button-group">
+              <button id="addSelectedToWatch" type="button">Add selected to Watch</button>
+              <button id="checkSelected" type="button">Check selected</button>
+              <button id="clearCandidates" class="secondary" type="button">Clear</button>
+            </div>
           </div>
           <form id="customCandidateForm" class="custom-candidate-form">
             <input id="customCandidates" placeholder="super, mega, nexus, statex, alfares.cz" autocomplete="off" />
@@ -73,6 +81,6 @@
         </section>
       </section>
     </main>
-    <script src="/app.js?v=watch-ui-20260626"></script>
+    <script src="/app.js?v=watch-ui-20260627"></script>
   </body>
 </html>

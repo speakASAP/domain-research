@@ -126,8 +126,15 @@ deploy_timing_k8s_rollout_wait kubectl "$SERVICE_NAME" "$NAMESPACE"
 deploy_timing_phase_end "Wait for rollout"
 
 deploy_timing_phase_start "Health check"
-POD=$(kubectl get pod -n "$NAMESPACE" -l "app=${SERVICE_NAME}" -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n "$NAMESPACE" "$POD" -- node -e \
+POD=$(kubectl get pod -n "$NAMESPACE" -l "app=${SERVICE_NAME}" --field-selector=status.phase=Running \
+  -o custom-columns=NAME:.metadata.name,HASH:.metadata.labels.pod-template-hash --no-headers \
+  | awk '$2 != "<none>" { print $1; exit }')
+if [ -z "$POD" ]; then
+  echo -e "${RED}No running deployment pod found for ${SERVICE_NAME}${NC}" >&2
+  kubectl get pod -n "$NAMESPACE" -l "app=${SERVICE_NAME}" -o wide || true
+  exit 1
+fi
+kubectl exec -n "$NAMESPACE" "$POD" -c app -- node -e \
   "fetch('http://127.0.0.1:${HEALTH_PORT}/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 echo -e "${GREEN}Health OK${NC}"
 deploy_timing_phase_end "Health check"

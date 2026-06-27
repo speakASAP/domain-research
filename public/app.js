@@ -25,6 +25,7 @@ const CUSTOM_CANDIDATE_SCORE = 70;
 const candidateList = document.getElementById('candidateList');
 const watchList = document.getElementById('watchList');
 const descriptionInput = document.getElementById('description');
+const seedDomainsInput = document.getElementById('seedDomains');
 const tldsInput = document.getElementById('tlds');
 const countInput = document.getElementById('count');
 const voiceButton = document.getElementById('voiceDescription');
@@ -38,6 +39,8 @@ const watchDomainChips = document.getElementById('watchDomainChips');
 const customCandidateForm = document.getElementById('customCandidateForm');
 const customCandidateInput = document.getElementById('customCandidates');
 const refreshWatchesButton = document.getElementById('refreshWatches');
+const addSelectedToWatchButton = document.getElementById('addSelectedToWatch');
+const clearCandidatesButton = document.getElementById('clearCandidates');
 
 function getAccessToken() {
   return sessionStorage.getItem(STORAGE_ACCESS) || LEGACY_ACCESS_KEYS.map((key) => sessionStorage.getItem(key)).find(Boolean) || '';
@@ -56,6 +59,7 @@ function saveSessionDraft() {
       version: DRAFT_VERSION,
       savedAt: new Date().toISOString(),
       description: descriptionInput?.value || '',
+      seedDomains: seedDomainsInput?.value || '',
       tlds: tldsInput?.value || '',
       count: countInput?.value || '',
       candidates: state.candidates.slice(0, MAX_DRAFT_CANDIDATES),
@@ -134,6 +138,7 @@ function restoreSessionDraft() {
   }
 
   if (descriptionInput) descriptionInput.value = draft.description || '';
+  if (seedDomainsInput) seedDomainsInput.value = draft.seedDomains || '';
   if (tldsInput && draft.tlds) tldsInput.value = draft.tlds;
   if (countInput && draft.count) countInput.value = draft.count;
   if (watchDomainInput) watchDomainInput.value = draft.watchDomainInput || '';
@@ -148,6 +153,7 @@ function restoreSessionDraft() {
 function hasUnsavedDraftInput() {
   return Boolean(
     (descriptionInput?.value || '').trim() ||
+    (seedDomainsInput?.value || '').trim() ||
     (watchDomainInput?.value || '').trim() ||
     (customCandidateInput?.value || '').trim() ||
     state.candidates.length ||
@@ -358,6 +364,11 @@ function joinDictationText(currentText, nextText) {
 }
 
 function renderCandidates() {
+  if (!state.candidates.length) {
+    candidateList.innerHTML = '<p class="meta">No candidates yet.</p>';
+    return;
+  }
+
   candidateList.innerHTML = state.candidates.map((candidate) => {
     const fqdn = String(candidate.fqdn || '');
     const checked = state.selectedDomains[fqdn] !== false ? 'checked' : '';
@@ -393,6 +404,12 @@ function parseCustomCandidateItems(value) {
     .split(/[,\n\r\t]+/)
     .flatMap((chunk) => chunk.split(/\s+/))
     .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseSeedDomainItems(value) {
+  return parseCustomCandidateItems(value)
+    .map(normalizeCustomCandidateLabel)
     .filter(Boolean);
 }
 
@@ -457,6 +474,7 @@ document.getElementById('suggestionForm').addEventListener('submit', async (even
   candidateList.innerHTML = '<p class="meta">Generating candidates...</p>';
   const payload = {
     description: descriptionInput?.value || '',
+    seedNames: parseSeedDomainItems(seedDomainsInput?.value || ''),
     tlds: (tldsInput?.value || '').split(',').map((item) => item.trim()).filter(Boolean),
     count: Number(countInput?.value || 12),
   };
@@ -493,6 +511,21 @@ document.getElementById('checkSelected').addEventListener('click', async () => {
   const byDomain = new Map((result.results || []).map((item) => [item.fqdn, item]));
   state.candidates = state.candidates.map((candidate) => ({ ...candidate, ...(byDomain.get(candidate.fqdn) || {}) }));
   captureCandidateSelections();
+  renderCandidates();
+  saveSessionDraft();
+});
+
+addSelectedToWatchButton?.addEventListener('click', () => {
+  const domains = Array.from(candidateList.querySelectorAll('input:checked')).map((input) => input.value);
+  if (!domains.length) return;
+  addWatchDomainsFromText(domains.join(','));
+  watchDomainInput?.focus();
+});
+
+clearCandidatesButton?.addEventListener('click', () => {
+  state.candidates = [];
+  state.selectedDomains = {};
+  if (customCandidateInput) customCandidateInput.value = '';
   renderCandidates();
   saveSessionDraft();
 });
@@ -619,7 +652,7 @@ async function handleWatchSubmit(event) {
 watchForm?.addEventListener('submit', handleWatchSubmit);
 document.getElementById('createWatchesButton')?.addEventListener('click', handleWatchSubmit);
 
-[descriptionInput, tldsInput, countInput, watchDomainInput, customCandidateInput].forEach((input) => {
+[descriptionInput, seedDomainsInput, tldsInput, countInput, watchDomainInput, customCandidateInput].forEach((input) => {
   input?.addEventListener('input', autosaveSessionDraft);
   input?.addEventListener('change', autosaveSessionDraft);
 });
@@ -699,6 +732,7 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
           <th>Buy window estimate</th>
           <th>Next check</th>
           <th>Notify</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -722,6 +756,9 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
                 <span>When available</span>
               </label>
             </td>
+            <td>
+              <button type="button" class="secondary danger compact" data-watch-delete aria-label="Delete ${escapeHtml(watch.fqdn)}">Delete</button>
+            </td>
           </tr>
         `).join('')}
       </tbody>
@@ -729,6 +766,22 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
   `;
 }
 
+watchList.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-watch-delete]');
+  if (!button) return;
+  const row = button.closest('[data-watch-id]');
+  const id = row?.dataset.watchId;
+  const domain = row?.querySelector('.domain')?.textContent || 'this domain';
+  if (!id || !window.confirm(`Remove ${domain} from your watch list?`)) return;
+  button.disabled = true;
+  try {
+    await api(`/watches/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await loadWatches();
+  } catch (error) {
+    button.disabled = false;
+    watchList.insertAdjacentHTML('afterbegin', `<p class="meta">${escapeHtml(error.message)}</p>`);
+  }
+});
 watchList.addEventListener('change', async (event) => {
   const input = event.target.closest('[data-watch-notify]');
   if (!input) return;

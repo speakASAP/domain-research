@@ -31,15 +31,18 @@ describe('DomainWatchService', () => {
       find: jest.fn(async () => []),
       findOneByOrFail: jest.fn(async () => ({ id: 'watch-1', userId: 'auth-user-1', enabled: true })),
       save: jest.fn(async (input: any) => input),
+      remove: jest.fn(async (input: any) => input),
     };
     const service = new DomainWatchService(watches, {} as any, {} as any);
 
     await service.listWatches('auth-user-1');
     await service.updateWatch('watch-1', 'auth-user-1', { enabled: false });
+    await service.deleteWatch('watch-1', 'auth-user-1');
 
     expect(watches.find).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'auth-user-1' } }));
     expect(watches.findOneByOrFail).toHaveBeenCalledWith({ id: 'watch-1', userId: 'auth-user-1' });
     expect(watches.save).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
+    expect(watches.remove).toHaveBeenCalledWith(expect.objectContaining({ id: 'watch-1', userId: 'auth-user-1' }));
   });
 
   it('rechecks all watches for the authenticated user and refreshes availability state', async () => {

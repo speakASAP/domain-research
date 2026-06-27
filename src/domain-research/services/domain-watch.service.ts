@@ -73,6 +73,12 @@ export class DomainWatchService {
     return this.watches.save(watch);
   }
 
+  async deleteWatch(id: string, userId: string): Promise<{ id: string }> {
+    const watch = await this.watches.findOneByOrFail({ id, userId });
+    await this.watches.remove(watch);
+    return { id };
+  }
+
   async recheckWatches(userId: string): Promise<{ checked: number; failed: number; watches: DomainWatch[] }> {
     const watches = await this.watches.find({
       where: { userId },

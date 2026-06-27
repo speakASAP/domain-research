@@ -67,4 +67,35 @@ describe('DomainSuggestionService heuristics', () => {
     expect(saved.every((candidate) => candidate.sld.length <= 24)).toBe(true);
     expect(saved.map((candidate) => candidate.fqdn)).toContain('airestaurant.com');
   });
+
+  it('uses provided seed names before generated fallback names', async () => {
+    const saved: any[] = [];
+    const jobs: any = {
+      create: (input: any) => input,
+      save: async (input: any) => ({ id: 'job-1', ...input }),
+      findOne: async () => ({ id: 'job-1', candidates: saved }),
+    };
+    const candidates: any = {
+      create: (input: any) => input,
+      save: async (input: any[]) => saved.push(...input),
+    };
+    const ai: any = { suggestDomainNames: async () => [] };
+    const service = new DomainSuggestionService(jobs, candidates, ai);
+
+    await service.createSuggestion({
+      description: 'Testing product names',
+      seedNames: ['testhub', 'gettest', 'testpilot'],
+      tlds: ['com', 'cz'],
+      count: 6,
+    });
+
+    expect(saved.map((candidate) => candidate.fqdn)).toEqual([
+      'testhub.com',
+      'testhub.cz',
+      'gettest.com',
+      'gettest.cz',
+      'testpilot.com',
+      'testpilot.cz',
+    ]);
+  });
 });
