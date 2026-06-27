@@ -8,6 +8,7 @@
   --accent: #0f766e;
   --accent-strong: #0b5f59;
   --warning: #9a5b00;
+  --danger: #9f1239;
 }
 
 * {
@@ -375,12 +376,11 @@ button:disabled {
   font-weight: 800;
 }
 
-.watch-date-input {
-  width: 100%;
-  min-width: 180px;
-  margin-top: 6px;
-  padding: 7px 8px;
-  font-size: 13px;
+
+.watch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .whois-link {
@@ -388,7 +388,6 @@ button:disabled {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  margin-right: 6px;
 }
 
 .notify-toggle {
@@ -432,6 +431,62 @@ button.danger:hover {
 button.compact {
   padding: 7px 9px;
   font-size: 12px;
+}
+
+.watch-edit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 52%);
+}
+
+.watch-edit-overlay[hidden] {
+  display: none;
+}
+
+.watch-edit-modal {
+  width: min(440px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 25%);
+}
+
+.watch-edit-modal form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.watch-edit-modal input[readonly] {
+  color: var(--muted);
+  background: #f8fafc;
+}
+
+.modal-error {
+  min-height: 18px;
+  color: var(--danger);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 @media (max-width: 720px) {

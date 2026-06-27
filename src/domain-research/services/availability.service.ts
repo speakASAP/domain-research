@@ -15,6 +15,7 @@ type WhoisResult = {
   availability: WhoisAvailability;
   confidence: 'low' | 'medium';
   text: string;
+  expiresAt?: Date | null;
   error?: string;
 };
 
@@ -88,6 +89,7 @@ export class AvailabilityService {
       provider: 'whois',
       availability: whois.availability,
       confidence: whois.confidence,
+      expiresAt: whois.expiresAt || null,
       rawHash: sha256(whois.text),
       error: `RDAP fallback used: ${rdapError}`,
     });
@@ -110,6 +112,7 @@ export class AvailabilityService {
         availability,
         confidence: availability === 'unknown' ? 'low' : 'medium',
         text: registryText,
+        expiresAt: extractWhoisExpiry(registryText),
       };
     } catch (error) {
       return {
@@ -181,6 +184,37 @@ function extractRegistryStatuses(payload: Record<string, unknown>): string[] {
 export function parseWhoisReferral(text: string): string | null {
   const match = text.match(/^whois:\s*(\S+)/im);
   return match?.[1]?.toLowerCase() || null;
+}
+
+export function extractWhoisExpiry(text: string): Date | null {
+  const lines = text.split(/\r?\n/);
+  const patterns = [
+    /^expire:\s*(\d{1,2})\.(\d{1,2})\.(\d{4})\b/i,
+    /^paid-till:\s*(\d{4})-(\d{1,2})-(\d{1,2})\b/i,
+    /^(?:registry expiry date|registrar registration expiration date|expiration date|expiry date|expires):\s*(.+)$/i,
+  ];
+
+  for (const line of lines) {
+    const cz = line.match(patterns[0]);
+    if (cz) return dateFromParts(Number(cz[3]), Number(cz[2]), Number(cz[1]));
+
+    const isoDate = line.match(patterns[1]);
+    if (isoDate) return dateFromParts(Number(isoDate[1]), Number(isoDate[2]), Number(isoDate[3]));
+
+    const generic = line.match(patterns[2]);
+    if (generic) {
+      const parsed = new Date(generic[1].trim());
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+  }
+
+  return null;
+}
+
+function dateFromParts(year: number, month: number, day: number): Date | null {
+  if (!year || month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export function classifyWhoisAvailability(text: string): WhoisAvailability {

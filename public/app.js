@@ -22,6 +22,7 @@ const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 const LEGACY_ACCESS_KEYS = ['auth_profile_access', 'auth_admin_access'];
 const CUSTOM_CANDIDATE_SCORE = 70;
 const WHOIS_BASE_URL = 'https://www.whois.com/whois/';
+let editWatchModal = null;
 
 const candidateList = document.getElementById('candidateList');
 const watchList = document.getElementById('watchList');
@@ -744,15 +745,9 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
               <span class="meta">${escapeHtml(watch.lifecycleStage || 'unknown')} · ${escapeHtml(watch.lastAvailability || 'unknown')}</span>
               ${manualCheckHint(watch)}
             </td>
-            <td>
-              <span>${escapeHtml(formatDate(watch.lastExpiresAt, 'unknown'))}</span>
-              <input class="watch-date-input" type="datetime-local" data-watch-expires value="${escapeHtml(toDateTimeLocalValue(watch.lastExpiresAt))}" aria-label="Manual expiry date for ${escapeHtml(watch.fqdn)}" />
-            </td>
+            <td>${escapeHtml(formatDate(watch.lastExpiresAt, 'unknown'))}</td>
             <td>${escapeHtml(formatDate(watch.dropCandidateAt, 'not estimated'))}</td>
-            <td>
-              <span>${escapeHtml(formatDate(watch.nextCheckAt, 'not scheduled'))}</span>
-              <input class="watch-date-input" type="datetime-local" data-watch-next-check value="${escapeHtml(toDateTimeLocalValue(watch.nextCheckAt))}" aria-label="Manual next check date for ${escapeHtml(watch.fqdn)}" />
-            </td>
+            <td>${escapeHtml(formatDate(watch.nextCheckAt, 'not scheduled'))}</td>
             <td>
               <label class="notify-toggle">
                 <input
@@ -765,9 +760,11 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
               </label>
             </td>
             <td>
-              <a class="secondary compact whois-link" href="${escapeHtml(whoisUrl(watch.fqdn))}" target="_blank" rel="noopener noreferrer">Whois</a>
-              <button type="button" class="secondary compact" data-watch-save-dates aria-label="Save manual dates for ${escapeHtml(watch.fqdn)}">Save dates</button>
-              <button type="button" class="secondary danger compact" data-watch-delete aria-label="Delete ${escapeHtml(watch.fqdn)}">Delete</button>
+              <div class="watch-actions">
+                <a class="secondary compact whois-link" href="${escapeHtml(whoisUrl(watch.fqdn))}" target="_blank" rel="noopener noreferrer">Whois</a>
+                <button type="button" class="secondary compact" data-watch-edit data-watch-domain="${escapeHtml(watch.fqdn)}" data-watch-expires-at="${escapeHtml(watch.lastExpiresAt || '')}" data-watch-next-check-at="${escapeHtml(watch.nextCheckAt || '')}" aria-label="Edit next check for ${escapeHtml(watch.fqdn)}">Edit</button>
+                <button type="button" class="secondary danger compact" data-watch-delete aria-label="Delete ${escapeHtml(watch.fqdn)}">Delete</button>
+              </div>
             </td>
           </tr>
         `).join('')}
@@ -777,25 +774,17 @@ function renderWatchedDomainTable(watches, emptyMessage = 'No watched domains ye
 }
 
 watchList.addEventListener('click', async (event) => {
-  const saveDatesButton = event.target.closest('[data-watch-save-dates]');
-  if (saveDatesButton) {
-    const row = saveDatesButton.closest('[data-watch-id]');
+  const editButton = event.target.closest('[data-watch-edit]');
+  if (editButton) {
+    const row = editButton.closest('[data-watch-id]');
     const id = row?.dataset.watchId;
     if (!id) return;
-    const expiresValue = row.querySelector('[data-watch-expires]')?.value || '';
-    const nextCheckValue = row.querySelector('[data-watch-next-check]')?.value || '';
-    const payload = {};
-    if (expiresValue) payload.manualExpiresAt = fromDateTimeLocalValue(expiresValue);
-    if (nextCheckValue) payload.manualNextCheckAt = fromDateTimeLocalValue(nextCheckValue);
-    if (!payload.manualExpiresAt && !payload.manualNextCheckAt) return;
-    saveDatesButton.disabled = true;
-    try {
-      await api(`/watches/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      await loadWatches();
-    } catch (error) {
-      saveDatesButton.disabled = false;
-      watchList.insertAdjacentHTML('afterbegin', `<p class="meta">${escapeHtml(error.message)}</p>`);
-    }
+    openWatchEditModal({
+      id,
+      fqdn: editButton.dataset.watchDomain || row?.querySelector('.domain')?.textContent || '',
+      expiresAt: editButton.dataset.watchExpiresAt || '',
+      nextCheckAt: editButton.dataset.watchNextCheckAt || '',
+    });
     return;
   }
 
@@ -814,6 +803,7 @@ watchList.addEventListener('click', async (event) => {
     watchList.insertAdjacentHTML('afterbegin', `<p class="meta">${escapeHtml(error.message)}</p>`);
   }
 });
+
 watchList.addEventListener('change', async (event) => {
   const input = event.target.closest('[data-watch-notify]');
   if (!input) return;
@@ -826,6 +816,94 @@ watchList.addEventListener('change', async (event) => {
   });
   await loadWatches();
 });
+
+function ensureWatchEditModal() {
+  if (editWatchModal) return editWatchModal;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'watch-edit-overlay';
+  wrapper.hidden = true;
+  wrapper.innerHTML = `
+    <div class="watch-edit-modal" role="dialog" aria-modal="true" aria-labelledby="watchEditTitle">
+      <form id="watchEditForm">
+        <div class="modal-header">
+          <div>
+            <h3 id="watchEditTitle">Edit check schedule</h3>
+            <p id="watchEditDomain" class="meta"></p>
+          </div>
+          <button type="button" class="secondary compact" data-watch-edit-close aria-label="Close edit dialog">Close</button>
+        </div>
+        <label>
+          Expires from Whois
+          <input id="watchEditExpires" type="text" readonly />
+        </label>
+        <label>
+          Next check
+          <input id="watchEditNextCheck" type="datetime-local" />
+        </label>
+        <p id="watchEditError" class="meta modal-error" role="alert"></p>
+        <div class="modal-actions">
+          <button type="button" class="secondary" data-watch-edit-close>Cancel</button>
+          <button type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  const closeButtons = wrapper.querySelectorAll('[data-watch-edit-close]');
+  closeButtons.forEach((button) => button.addEventListener('click', closeWatchEditModal));
+  wrapper.addEventListener('click', (event) => {
+    if (event.target === wrapper) closeWatchEditModal();
+  });
+  wrapper.querySelector('#watchEditForm').addEventListener('submit', saveWatchEditModal);
+  editWatchModal = wrapper;
+  return wrapper;
+}
+
+function openWatchEditModal(watch) {
+  const modal = ensureWatchEditModal();
+  modal.dataset.watchId = watch.id;
+  modal.querySelector('#watchEditDomain').textContent = watch.fqdn || 'unknown domain';
+  modal.querySelector('#watchEditExpires').value = formatDate(watch.expiresAt, 'unknown');
+  modal.querySelector('#watchEditNextCheck').value = toDateTimeLocalValue(watch.nextCheckAt);
+  modal.querySelector('#watchEditError').textContent = '';
+  modal.hidden = false;
+  modal.querySelector('#watchEditNextCheck').focus();
+}
+
+function closeWatchEditModal() {
+  if (!editWatchModal) return;
+  editWatchModal.hidden = true;
+  editWatchModal.dataset.watchId = '';
+}
+
+async function saveWatchEditModal(event) {
+  event.preventDefault();
+  const modal = ensureWatchEditModal();
+  const id = modal.dataset.watchId;
+  const input = modal.querySelector('#watchEditNextCheck');
+  const error = modal.querySelector('#watchEditError');
+  const submit = modal.querySelector('button[type="submit"]');
+  if (!id) return;
+  if (!input.value) {
+    error.textContent = 'Choose a next check date.';
+    return;
+  }
+  submit.disabled = true;
+  error.textContent = '';
+  try {
+    await api(`/watches/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ manualNextCheckAt: fromDateTimeLocalValue(input.value) }),
+    });
+    closeWatchEditModal();
+    await loadWatches();
+  } catch (err) {
+    error.textContent = err.message;
+  } finally {
+    submit.disabled = false;
+  }
+}
 
 function formatDate(value, fallback = 'not scheduled') {
   return value ? new Date(value).toLocaleString() : fallback;

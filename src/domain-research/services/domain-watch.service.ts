@@ -70,19 +70,6 @@ export class DomainWatchService {
         if (!watch.nextCheckAt && shouldScheduleOnConsent(watch)) watch.nextCheckAt = new Date();
       }
     }
-    if (dto.manualExpiresAt !== undefined) {
-      const expiresAt = parseManualDate(dto.manualExpiresAt, 'manualExpiresAt');
-      const now = new Date();
-      const plan = planDomainLifecycle(
-        { availability: watch.lastAvailability || 'registered', expiresAt, registryStatuses: watch.lastRegistryStatuses || [] },
-        now,
-        null,
-      );
-      watch.lastExpiresAt = expiresAt;
-      watch.lifecycleStage = plan.stage;
-      watch.dropCandidateAt = plan.dropCandidateAt;
-      watch.nextCheckAt = plan.nextCheckAt;
-    }
     if (dto.manualNextCheckAt !== undefined) {
       watch.nextCheckAt = parseManualDate(dto.manualNextCheckAt, 'manualNextCheckAt');
       watch.enabled = true;

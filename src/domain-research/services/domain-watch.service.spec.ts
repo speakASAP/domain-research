@@ -78,33 +78,6 @@ describe('DomainWatchService', () => {
     }));
   });
 
-  it('replans lifecycle after a manual expiry date is saved', async () => {
-    const watches: any = {
-      findOneByOrFail: jest.fn(async () => ({
-        id: 'watch-1',
-        userId: 'auth-user-1',
-        enabled: true,
-        lastAvailability: 'registered',
-        lastExpiresAt: null,
-        lastRegistryStatuses: [],
-        lifecycleStage: 'unknown',
-        dropCandidateAt: null,
-        nextCheckAt: null,
-      })),
-      save: jest.fn(async (input: any) => input),
-    };
-    const service = new DomainWatchService(watches, {} as any, {} as any);
-
-    await service.updateWatch('watch-1', 'auth-user-1', { manualExpiresAt: '2026-08-10T10:00:00.000Z' });
-
-    expect(watches.save).toHaveBeenCalledWith(expect.objectContaining({
-      lastExpiresAt: new Date('2026-08-10T10:00:00.000Z'),
-      lifecycleStage: 'active',
-      dropCandidateAt: new Date('2026-10-14T10:00:00.000Z'),
-      nextCheckAt: new Date('2026-07-11T10:00:00.000Z'),
-    }));
-  });
-
   it('rechecks all watches for the authenticated user and refreshes availability state', async () => {
     const existingWatch: any = {
       id: 'watch-1',

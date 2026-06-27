@@ -11,9 +11,5 @@ export class UpdateWatchDto {
 
   @IsOptional()
   @IsISO8601()
-  manualExpiresAt?: string;
-
-  @IsOptional()
-  @IsISO8601()
   manualNextCheckAt?: string;
 }
