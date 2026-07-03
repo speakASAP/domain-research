@@ -39,11 +39,25 @@ spec:
                     const baseUrl = 'http://domain-research:4860';
                     if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is required');
                     const token = jwt.sign({ sub: 'domain-research-notification-cron', roles: ['internal:domain-research:admin'] }, process.env.JWT_SECRET, { expiresIn: '5m' });
-                    const response = await fetch(`${baseUrl}/api/internal/jobs/notification-dispatch/run-due`, {
-                      method: 'POST',
-                      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+                    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                    const requestDispatch = async () => fetch(`${baseUrl}/api/internal/jobs/notification-dispatch/run-due`, {
+                      method: "POST",
+                      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
                       body: JSON.stringify({ limit: 100 }),
                     });
+                    let response;
+                    let lastError;
+                    for (const delayMs of [0, 5000, 10000, 20000, 30000, 45000]) {
+                      if (delayMs > 0) await sleep(delayMs);
+                      try {
+                        response = await requestDispatch();
+                        break;
+                      } catch (error) {
+                        lastError = error;
+                        console.error(`notification dispatch request failed; retrying after transient network error: ${error.message}`);
+                      }
+                    }
+                    if (!response) throw lastError;
                     const payload = await response.json();
                     console.log(JSON.stringify(payload));
                     if (!response.ok || payload.failed > 0) throw new Error(`notification dispatch failed: ${JSON.stringify(payload)}`);
