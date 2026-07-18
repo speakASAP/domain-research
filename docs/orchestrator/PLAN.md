@@ -6,7 +6,7 @@ Complete TASK-001 with remote-only edits, run validation, and leave production d
 
 ## Parallel Lanes
 
-See `21_execution_plans/EP-TASK-001-bootstrap-domain-research.md`.
+See `docs/21_execution_plans/EP-TASK-001-bootstrap-domain-research.md`.
 
 ## Approval-Gated Notifications Lane
 

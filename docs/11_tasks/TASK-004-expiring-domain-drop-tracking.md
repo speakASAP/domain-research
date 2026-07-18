@@ -6,13 +6,13 @@ Add lifecycle-aware scheduling so watched domains can be monitored through expir
 
 ## Upstream links
 
-- Vision: `01_vision/VISION.md`
-- Goal Impact: `22_goal_impact/GOAL-IMPACT-TASK-004-expiring-domain-drop-tracking.md`
-- System: `04_systems/SYS-001-domain-research-service.md`
-- Feature: `10_features/FEAT-004-expiring-domain-drop-tracking.md`
-- Execution Plan: `21_execution_plans/EP-TASK-004-expiring-domain-drop-tracking.md`
-- Coding Prompt: `14_prompts/PROMPT-TASK-004-expiring-domain-drop-tracking.md`
-- Validation: `12_validation/VAL-TASK-004-expiring-domain-drop-tracking.md`
+- Vision: `docs/01_vision/VISION.md`
+- Goal Impact: `docs/22_goal_impact/GOAL-IMPACT-TASK-004-expiring-domain-drop-tracking.md`
+- System: `docs/04_systems/SYS-001-domain-research-service.md`
+- Feature: `docs/10_features/FEAT-004-expiring-domain-drop-tracking.md`
+- Execution Plan: `docs/21_execution_plans/EP-TASK-004-expiring-domain-drop-tracking.md`
+- Coding Prompt: `docs/14_prompts/PROMPT-TASK-004-expiring-domain-drop-tracking.md`
+- Validation: `docs/12_validation/VAL-TASK-004-expiring-domain-drop-tracking.md`
 
 ## Goal impact
 
@@ -44,7 +44,7 @@ Registrar purchase automation and paid drop-catch integration.
 
 ## Acceptance criteria
 
-See `10_features/FEAT-004-expiring-domain-drop-tracking.md`.
+See `docs/10_features/FEAT-004-expiring-domain-drop-tracking.md`.
 
 ## Required context
 

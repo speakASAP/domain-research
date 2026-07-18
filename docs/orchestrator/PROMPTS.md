@@ -14,7 +14,7 @@ Own IPS and orchestrator docs. Do not edit runtime code.
 
 ## Validation Worker
 
-Own `12_validation/**` and `reports/validation/**`. Run validation after implementation lanes finish.
+Own `docs/12_validation/**` and `reports/validation/**`. Run validation after implementation lanes finish.
 
 ## Notifications Machine Auth Worker
 

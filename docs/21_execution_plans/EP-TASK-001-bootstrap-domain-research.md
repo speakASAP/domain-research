@@ -29,7 +29,7 @@ Create the initial remote Alfares service repository for domain research, aligne
 | API/data model | ready_parallel | Backend worker | `src/domain-research/**`, tests | `k8s/**`, root IPS docs except task-specific updates | TASK-001 contract | `npm run build`, `npm test` |
 | AI/RDAP adapters | ready_parallel | Integration worker | `src/integrations/**`, `src/domain-research/services/availability.service.ts` | `k8s/**`, docs baseline | provider contracts | `npm run build`, targeted tests |
 | Ops/K8s | ready_parallel | Ops worker | `Dockerfile`, `scripts/**`, `k8s/**` | `src/domain-research/**` behavior | service name/port assumptions | `npm run gate:deployment`, `kubectl apply --dry-run=client` |
-| Validation integration | final_integration | Orchestrator | `12_validation/**`, `reports/validation/**`, status docs | unrelated repos | all lanes complete | full validation suite |
+| Validation integration | final_integration | Orchestrator | `docs/12_validation/**`, `reports/validation/**`, status docs | unrelated repos | all lanes complete | full validation suite |
 
 ## Merge Order
 

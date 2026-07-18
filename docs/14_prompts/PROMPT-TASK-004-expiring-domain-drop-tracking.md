@@ -6,7 +6,7 @@ Add expiring-domain drop tracking to Domain Research watches.
 
 ## Execution plan link
 
-`21_execution_plans/EP-TASK-004-expiring-domain-drop-tracking.md`
+`docs/21_execution_plans/EP-TASK-004-expiring-domain-drop-tracking.md`
 
 ## Required context
 
@@ -26,7 +26,7 @@ Use additive schema changes, dedupe lifecycle notifications, and preserve a fres
 
 ## Acceptance criteria
 
-See `11_tasks/TASK-004-expiring-domain-drop-tracking.md`.
+See `docs/11_tasks/TASK-004-expiring-domain-drop-tracking.md`.
 
 ## Validation commands
 

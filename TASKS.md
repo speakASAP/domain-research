@@ -6,13 +6,13 @@ Status: completed
 
 Trace:
 
-- Vision: `01_vision/VISION.md`
-- Goal Impact: `22_goal_impact/GOAL-IMPACT-TASK-001-bootstrap-domain-research.md`
-- System: `04_systems/SYS-001-domain-research-service.md`
-- Feature: `10_features/FEAT-001-domain-suggestion-and-watch.md`
-- Execution Plan: `21_execution_plans/EP-TASK-001-bootstrap-domain-research.md`
-- Coding Prompt: `14_prompts/PROMPT-TASK-001-bootstrap-domain-research.md`
-- Validation: `12_validation/VAL-TASK-001-bootstrap-domain-research.md`
+- Vision: `docs/01_vision/VISION.md`
+- Goal Impact: `docs/22_goal_impact/GOAL-IMPACT-TASK-001-bootstrap-domain-research.md`
+- System: `docs/04_systems/SYS-001-domain-research-service.md`
+- Feature: `docs/10_features/FEAT-001-domain-suggestion-and-watch.md`
+- Execution Plan: `docs/21_execution_plans/EP-TASK-001-bootstrap-domain-research.md`
+- Coding Prompt: `docs/14_prompts/PROMPT-TASK-001-bootstrap-domain-research.md`
+- Validation: `docs/12_validation/VAL-TASK-001-bootstrap-domain-research.md`
 
 Acceptance:
 
@@ -53,13 +53,13 @@ Status: completed
 
 Trace:
 
-- Vision: `01_vision/VISION.md`
-- Goal Impact: `22_goal_impact/GOAL-IMPACT-TASK-004-expiring-domain-drop-tracking.md`
-- System: `04_systems/SYS-001-domain-research-service.md`
-- Feature: `10_features/FEAT-004-expiring-domain-drop-tracking.md`
-- Execution Plan: `21_execution_plans/EP-TASK-004-expiring-domain-drop-tracking.md`
-- Coding Prompt: `14_prompts/PROMPT-TASK-004-expiring-domain-drop-tracking.md`
-- Validation: `12_validation/VAL-TASK-004-expiring-domain-drop-tracking.md`
+- Vision: `docs/01_vision/VISION.md`
+- Goal Impact: `docs/22_goal_impact/GOAL-IMPACT-TASK-004-expiring-domain-drop-tracking.md`
+- System: `docs/04_systems/SYS-001-domain-research-service.md`
+- Feature: `docs/10_features/FEAT-004-expiring-domain-drop-tracking.md`
+- Execution Plan: `docs/21_execution_plans/EP-TASK-004-expiring-domain-drop-tracking.md`
+- Coding Prompt: `docs/14_prompts/PROMPT-TASK-004-expiring-domain-drop-tracking.md`
+- Validation: `docs/12_validation/VAL-TASK-004-expiring-domain-drop-tracking.md`
 
 Acceptance:
 
@@ -74,10 +74,10 @@ Status: completed
 
 Trace:
 
-- Vision: `01_vision/VISION.md`
+- Vision: `docs/01_vision/VISION.md`
 - Goal Impact: `[MISSING: dedicated goal-impact document for owner-requested UX/AI quality polish]`
-- System: `04_systems/SYS-001-domain-research-service.md`
-- Feature: `10_features/FEAT-001-domain-suggestion-and-watch.md`
+- System: `docs/04_systems/SYS-001-domain-research-service.md`
+- Feature: `docs/10_features/FEAT-001-domain-suggestion-and-watch.md`
 - Execution Plan: `[MISSING: dedicated execution plan document for owner-requested UX/AI quality polish]`
 - Coding Prompt: owner request on 2026-06-26 to support comma/Enter/paste domain watch entry and use a smarter AI model tier.
 - Validation: `node --check public/app.js`, `git diff --check`, `npm run build`, `npm test`.
@@ -96,10 +96,10 @@ Status: completed
 
 Trace:
 
-- Vision: `01_vision/VISION.md`
+- Vision: `docs/01_vision/VISION.md`
 - Goal Impact: `[MISSING: dedicated goal-impact document for owner-requested unauthenticated watch UX polish]`
-- System: `04_systems/SYS-001-domain-research-service.md`
-- Feature: `10_features/FEAT-001-domain-suggestion-and-watch.md`
+- System: `docs/04_systems/SYS-001-domain-research-service.md`
+- Feature: `docs/10_features/FEAT-001-domain-suggestion-and-watch.md`
 - Execution Plan: `[MISSING: dedicated execution plan document for owner-requested unauthenticated watch UX polish]`
 - Coding Prompt: owner request on 2026-06-26 to warn unauthenticated users before redirecting from Watch to registration.
 - Validation: `node --check public/app.js`, `git diff --check`, `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, `npm run gate:deployment`, live browser check, production deploy.

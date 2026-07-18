@@ -52,7 +52,7 @@ docs/orchestrator/PLAN.md
 docs/orchestrator/PROMPTS.md
 docs/orchestrator/STATUS.md
 docs/orchestrator/VALIDATION_DEBT.md
-21_execution_plans/EP-TASK-001-bootstrap-domain-research.md
+docs/21_execution_plans/EP-TASK-001-bootstrap-domain-research.md
 ```
 
 ## Knowledge Retrieval

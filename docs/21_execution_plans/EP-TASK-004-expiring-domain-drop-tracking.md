@@ -61,7 +61,7 @@ Watch/check/notification entities, watch service, scheduler service, notificatio
 
 ## Files that must not be modified
 
-`00_constitution/CONSTITUTION.md`, `01_vision/VISION.md`, secrets, sibling repos.
+`docs/00_constitution/CONSTITUTION.md`, `docs/01_vision/VISION.md`, secrets, sibling repos.
 
 ## Implementation steps
 
@@ -79,7 +79,7 @@ Watch/check/notification entities, watch service, scheduler service, notificatio
 
 ## Validation plan
 
-Capture command outputs in `12_validation/VAL-TASK-004-expiring-domain-drop-tracking.md`.
+Capture command outputs in `docs/12_validation/VAL-TASK-004-expiring-domain-drop-tracking.md`.
 
 ## Gate commands
 
