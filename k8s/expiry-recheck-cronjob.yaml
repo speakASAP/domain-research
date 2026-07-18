@@ -8,7 +8,11 @@ metadata:
     component: expiry-recheck
     managed-by: k8s-migration
 spec:
-  schedule: "*/5 * * * *"
+  # Staggered (was */5, colliding every fire with warehouse-reservation-expiry's
+  # identical */5 schedule -- both spawning Jobs with imagePullPolicy: Always
+  # on the same single-node cluster at the exact same second). See
+  # shared/docs/DEPLOY_STANDARDIZATION_REPORT.md section 12 addendum.
+  schedule: "2-57/5 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5

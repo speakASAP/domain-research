@@ -8,7 +8,9 @@ metadata:
     component: notification-dispatch
     managed-by: k8s-migration
 spec:
-  schedule: "*/15 * * * *"
+  # Staggered off the :00/:15/:30/:45 marks shared by several other cronjobs.
+  # See shared/docs/DEPLOY_STANDARDIZATION_REPORT.md section 12 addendum.
+  schedule: "9-59/15 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 5
