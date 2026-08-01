@@ -14,8 +14,8 @@ spec:
   # shared/docs/DEPLOY_STANDARDIZATION_REPORT.md section 12 addendum.
   schedule: "2-57/5 * * * *"
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 5
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       backoffLimit: 3
