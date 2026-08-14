@@ -82,6 +82,14 @@ YAML
   kubectl apply -f "$PROJECT_ROOT/k8s/deployment.yaml" -n "$NAMESPACE"
   kubectl apply -f "$PROJECT_ROOT/k8s/service.yaml" -n "$NAMESPACE"
   kubectl apply -f "$PROJECT_ROOT/k8s/ingress.yaml" -n "$NAMESPACE"
-  kubectl apply -f "$PROJECT_ROOT/k8s/expiry-recheck-cronjob.yaml" -n "$NAMESPACE"
-  kubectl apply -f "$PROJECT_ROOT/k8s/notification-dispatch-cronjob.yaml" -n "$NAMESPACE"
+  # Both CronJobs hardcode :latest and must have the real tag substituted:
+  # `kubectl set image` only ever targets deployments, so a CronJob applied
+  # verbatim stays pinned to :latest forever and silently runs whatever was
+  # built last, with no deploy event to notice.
+  sed "s#${REGISTRY}/${SERVICE_NAME}:latest#${image}#g" \
+    "$PROJECT_ROOT/k8s/expiry-recheck-cronjob.yaml" \
+    | kubectl apply -f - -n "$NAMESPACE"
+  sed "s#${REGISTRY}/${SERVICE_NAME}:latest#${image}#g" \
+    "$PROJECT_ROOT/k8s/notification-dispatch-cronjob.yaml" \
+    | kubectl apply -f - -n "$NAMESPACE"
 }
