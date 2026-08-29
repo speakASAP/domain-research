@@ -57,16 +57,15 @@ docs/21_execution_plans/EP-TASK-001-bootstrap-domain-research.md
 
 ## Knowledge Retrieval
 
-Query docs-rag-microservice first for architectural, deployment, migration, operations, and API-contract questions when a service JWT is available:
+Use `docs-rag-microservice` for bounded discovery when it is healthy, then
+verify deployment, security, database, integration and public-contract facts
+against the cited Git source. Git remains authoritative.
 
-```bash
-curl -s -X POST http://docs-rag-microservice.statex-apps.svc.cluster.local:3397/retrieval/agent-context \
-  -H "Authorization: Bearer $JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "domain-research architecture or operation question", "maxTokens": 3000}'
-```
+Authority and fallback rules:
+`/home/ssf/Documents/Github/shared/docs/DOCUMENTATION_AUTHORITY.md`.
 
-Current bootstrap evidence: docs-rag returned HTTP 200 with empty context for initial Alfares service-creation queries, so source files were used and this gap is recorded in validation debt.
+Do not generate tokens in documentation or assume an unconfident/failed RAG
+response means that source documentation does not exist.
 
 ## Product And Operations Guardrails
 
