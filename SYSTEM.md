@@ -1,57 +1,62 @@
-# System Design
+# SYSTEM.md
 
-## System Boundary
+completeness_level: complete
 
-Domain Research owns:
+status: validated
 
-- domain suggestion jobs;
-- candidate domain records;
-- RDAP/provider availability checks;
-- watched domain lifecycle state;
-- scheduled expiry rechecks;
-- notification dispatch records;
-- product UI for the workflow.
+## Purpose
+The Domain Research service proposes domain names, validates availability and lifecycle evidence, watches domains for later changes, and dispatches notifications when a previously watched domain becomes available again.
 
-Domain Research does not own:
+## Responsibilities
+- Generate domain suggestion jobs from service or business input
+- Evaluate available candidate names and check their lifecycle status
+- Maintain watch records for domains that require future review
+- Recheck watched domains and trigger notification logic when state changes
+- Keep the service boundary aligned with auth, AI, and notifications dependencies without inventing parallel infrastructure
 
-- identity provider behavior;
-- notification delivery infrastructure;
-- LLM provider keys;
-- docs-rag indexing infrastructure;
-- registrar account ownership.
+## Non-responsibilities
+- Owning the identity provider or auth service itself
+- Implementing a custom email or messaging stack
+- Directly purchasing domains without an approved provider integration
+- Replacing docs-rag or broader platform discovery services
 
-## Modules
+## Inputs
+- Business or service description for candidate generation
+- RDAP and availability checks for candidate domains
+- User-scoped watch records and lifecycle metadata
+- Platform secrets and environment configuration from Vault
 
-- `DomainSuggestionModule`: user description -> candidate domain names.
-- `AvailabilityModule`: RDAP-first domain checks and lifecycle evidence.
-- `DomainWatchModule`: user-owned watches and observation history.
-- `SchedulerModule`: CronJob-triggered due checks and notification dispatch.
-- `NotificationModule`: notifications-microservice client.
-- `AiClient`: ai-microservice client.
+## Outputs
+- Candidate domain suggestions and availability evidence records
+- Watch lifecycle state and recheck results
+- Notification dispatch records passed to notifications-microservice
+- Health and readiness status for the platform and service owner
 
-## Persistence
+## Dependencies
+- ai-microservice for domain suggestions
+- notifications-microservice for real delivery flows
+- logging-microservice for structured logs
+- auth-microservice for bearer-token validation on authenticated watch endpoints
+- db-server-postgres for service persistence
+- Vault and External Secrets for secret management
 
-PostgreSQL database: `[ASSUMPTION: domain_research]`.
+## Upstream traceability
+- AI candidate generation is upstream to the suggestion workflow.
+- Auth validation is upstream to user-owned watch APIs.
+- Notifications are upstream to the human-facing alert path.
+- Postgres and Vault are platform dependencies rather than local domain ownership.
 
-Tables:
+## Downstream artifacts
+- Suggestion records and checked availability records
+- Watch state and reminder workflows
+- Notification records and domain-lifecycle evidence for operator review
 
-- `domain_suggestion_jobs`
-- `domain_candidates`
-- `domain_checks`
-- `domain_watches`
-- `domain_notifications`
+## Validation criteria
+- Domain suggestions remain relevant to the described use case.
+- RDAP-first availability checks remain evidence-backed and repeatable.
+- Watch logic triggers only when the service has legitimate eligibility to notify.
+- Deployment readiness checks and service health remain green before rollout.
 
-## External Integrations
-
-- `ai-microservice`: candidate expansion through `POST /ai/complete`.
-- `notifications-microservice`: email/Telegram/WhatsApp delivery through `/notifications/send`.
-- `logging-microservice`: structured logs through `/api/logs`.
-- `auth-microservice`: validates browser bearer tokens through `POST /auth/validate` for user-owned watch endpoints. `[MISSING: final hosted Auth role/client registration]`.
-- `docs-rag-microservice`: ingest markdown docs after repo registration.
-
-## Security
-
-- Secrets in Vault only.
-- Internal job endpoints require JWT signed with `JWT_SECRET`.
-- Raw RDAP response bodies are hashed, not persisted.
-- Notification recipients are stored as bounded references only.
+## Open questions
+- Which registrar provider will be approved for a future purchase-adapter workflow.
+- Which recipient policy will govern production notification delivery and escalation.

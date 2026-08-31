@@ -1,107 +1,30 @@
-# Repository Agent Instructions
+# Agents
 
-Shared rules live here:
+## Required reading
+- `README.md`
+- `BUSINESS.md`
+- `SYSTEM.md`
+- `TASKS.md`
+- `STATE.json`
+- `intent-preservation-system/docs/24_onboarding/PROJECT_ADOPTION_STANDARD.md`
+- `intent-preservation-system/scripts/validate_adoption_profile.py`
 
-- Codex profile: `/home/ssf/.codex/AGENTS.md`
-- Cross-agent standard: `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`
-- Repository operations: `AGENT_OPERATIONS.md`
+## Authority
+This repo owns the domain-research workflow, including suggestion generation, availability checks, watch tracking, and notification dispatch records. It does not own identity, payment, or registrar purchase infrastructure.
 
-Read those first, then follow the repository-specific notes below and the current planning/status files.
+## Intent preservation system
+This repo preserves the chain by documenting its service intent, operational boundaries, and evidence-based availability logic in a traceable, validation-ready profile.
 
-## Repository-Specific Notes
+## Safety and operations
+- Do not print JWTs, production tokens, or raw RDAP payloads in logs or documentation.
+- Keep notifications bound to the approved notifications service and never implement a separate custom sender.
+- Domain purchase remains a handoff workflow until a provider adapter is explicitly approved.
+- Preserve honest service boundaries and avoid claiming ownership of platform or identity infrastructure.
 
-# Agents: domain-research
+## Project-specific rules
+- Use RDAP-first availability evidence and keep provider-specific adapters clearly separated.
+- Treat notification delivery as an approved external contract rather than an in-repo feature.
+- Do not invent a final provider budget, auth role, or notification recipient policy without explicit project owner approval.
 
-## Core Intent
-
-Domain Research helps Alfares users describe a business or service, receive domain-name candidates, check domain availability and expiration evidence, and watch registered domains until they become available.
-
-The service must preserve the chain:
-
-```text
-Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation
-```
-
-If any fact is unavailable, mark it as `[MISSING: ...]` or `[UNKNOWN: ...]`.
-
-## Remote-First Workspace
-
-All implementation work happens on the remote server:
-
-```bash
-ssh alfares
-cd /home/ssf/Documents/Github/domain-research
-```
-
-Do not save or edit the service code under local `/Users/Sergej.Stasok/Documents`.
-
-## Required Reading
-
-Before implementation, branch orchestration, or launching workers, read:
-
-```text
-README.md
-BUSINESS.md
-SYSTEM.md
-GOALS.md
-TASKS.md
-STATE.json
-docs/orchestrator/INTENT.md
-docs/orchestrator/GOALS.md
-docs/orchestrator/PLAN.md
-docs/orchestrator/PROMPTS.md
-docs/orchestrator/STATUS.md
-docs/orchestrator/VALIDATION_DEBT.md
-docs/21_execution_plans/EP-TASK-001-bootstrap-domain-research.md
-```
-
-## Knowledge Retrieval
-
-Use `docs-rag-microservice` for bounded discovery when it is healthy, then
-verify deployment, security, database, integration and public-contract facts
-against the cited Git source. Git remains authoritative.
-
-Authority and fallback rules:
-`/home/ssf/Documents/Github/shared/docs/DOCUMENTATION_AUTHORITY.md`.
-
-Do not generate tokens in documentation or assume an unconfident/failed RAG
-response means that source documentation does not exist.
-
-## Product And Operations Guardrails
-
-- Secrets must live in Vault at `secret/prod/domain-research`, synced by External Secrets Operator.
-- Do not print JWTs, service tokens, notification recipients, raw WHOIS/RDAP payloads, or production data in docs, prompts, tests, logs, or screenshots.
-- RDAP is the default source for domain lifecycle evidence. Paid registrar/API providers are adapters and require explicit secret/provider setup.
-- Notifications are sent only through notifications-microservice. This repo must not implement its own email/Telegram sender.
-- Domain purchase is a handoff/link workflow until an approved registrar API integration exists.
-- Watches and notifications are user-impacting. Test sends to real recipients require explicit approval.
-
-## Parallel Planning Default
-
-Use disjoint work ownership. Every substantial plan must include:
-
-- objective;
-- allowed files;
-- forbidden files;
-- dependencies and blockers;
-- validation evidence;
-- integration owner;
-- merge order.
-
-## Commands
-
-```bash
-npm run build
-npm test
-npm run docs:audit
-npm run gate:pre-coding
-npm run gate:deployment
-./scripts/deploy.sh
-```
-
-Do not deploy unless Vault secrets, database migration state, and readiness gates are satisfied.
-
-## Active Agents
-
-<!-- Coordinator-maintained -->
-None.
+## Required final report
+The final report must describe the real domain-research service boundary, its validation evidence, and any remaining operational approval blockers that are not yet resolved.

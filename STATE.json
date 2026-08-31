@@ -1,37 +1,19 @@
 {
+  "schemaVersion": 1,
   "project": "domain-research",
-  "status": "blocked_external_approvals",
-  "currentGoal": "Goal 4: Provider Adapter Layer",
-  "currentTask": "No active autonomous task",
-  "next_focus": "No autonomous task remains. Wait for paid registrar/provider approval or an owner-approved dedicated notifications machine-auth contract before new implementation.",
-  "tasks_active": 0,
-  "open_task_ids": [],
-  "assumptions": {
-    "domain": "domain-research.alfares.cz",
-    "port": 4860,
-    "database": "domain_research",
-    "databaseUser": "domain_research",
-    "vaultPath": "secret/prod/domain-research"
+  "lifecycle": "production",
+  "health": "active",
+  "activeTask": "bootstrap-service",
+  "lastUpdated": "2026-08-31T00:00:00Z",
+  "deployment": {
+    "status": "deployed",
+    "environment": "statex-apps"
   },
   "blockers": [
-    "[MISSING: paid domain provider approval and API keys]",
-    "[MISSING: owner-approved dedicated notifications machine-auth contract]"
+    "The future provider purchase flow and production notification recipient policy require explicit project-owner approval before they are expanded beyond the current evidence-driven domain watch workflow."
   ],
-  "parallelReady": [],
-  "validation": {
-    "build": "passed",
-    "test": "passed",
-    "docsAudit": "passed",
-    "preCodingGate": "passed",
-    "deploymentReadinessGate": "passed",
-    "vaultSecrets": "created",
-    "database": "created",
-    "migrationPolicy": "kubernetes-job",
-    "deployed": true,
-    "productionHealth": "passed",
-    "publicUrl": "https://domain-research.alfares.cz",
-    "hostedAuthReturnUrl": "passed",
-    "authRbacRegistration": "passed"
-  },
-  "updatedAt": "2026-06-26T17:05:00Z"
+  "followUps": [
+    "Confirm the approved registrar provider and notification recipient policy for any future purchase or production notification expansion.",
+    "Keep the service aligned to RDAP-first availability evidence and the current watch-based domain lifecycle workflow."
+  ]
 }

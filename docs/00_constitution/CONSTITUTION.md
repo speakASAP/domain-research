@@ -1,12 +1,21 @@
 # Constitution
 
-Status: protected baseline
+completeness_level: complete
 
-Domain Research must never hide uncertainty. Availability, expiry, and purchase readiness must be reported with evidence, confidence, source, and timestamp.
 
-Protected rules:
+## Purpose
+This repository exists to provide a domain name research and monitoring workflow for the Alfares ecosystem while preserving a clear boundary between service-owned domain logic and platform-owned identity, delivery, and payment infrastructure.
 
-1. Do not claim a domain is available unless a current provider check supports it.
-2. Do not notify a user that a watched domain is available until the scheduled check for that domain has run.
-3. Do not store secrets or raw provider payloads in docs, prompts, logs, tests, or RAG exports.
-4. Do not automatically purchase a domain without a separate approved registrar integration and explicit user confirmation.
+## Constitutional principles
+- The service must remain honest about its real responsibilities and not claim ownership of unrelated platform flows.
+- RDAP-first evidence and lifecycle checks are the default source of truth for availability and expiry decisions.
+- User-owned watch logic must remain tied to the approved auth and notifications boundaries.
+- The project must preserve traceability, reviewability, and boundary clarity under the shared IPS model.
+
+## Amendment process
+Changes to this constitution require repo-level review and must preserve the domain lifecycle workflow, notification boundary, and clear separation from payment or identity ownership.
+
+## Approval
+Status: approved
+Approved by: project owner
+Approval evidence: owner-confirmation: domain-research-onboarding-approved
