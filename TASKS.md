@@ -1,11 +1,17 @@
 # Tasks
 
-## Active- complete IPS adoption profile for domain-research
+## Active
 
-## Ready Next- review provider-approval follow-up for a future purchase integration
+- complete IPS adoption profile for domain-research
+
+## Ready Next
+
+- review provider-approval follow-up for a future purchase integration
 - confirm the production notification recipient policy for watched-domain alerts
 
-## Blocked- any paid provider or final notification routing changes remain dependent on project-owner approval
+## Blocked
+
+- any paid provider or final notification routing changes remain dependent on project-owner approval
 
 ## Completed
 - actual service boundary documented and aligned to the real repo implementation
