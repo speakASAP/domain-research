@@ -7,3 +7,14 @@ coverage/
 npm-debug.log*
 .DS_Store
 *.local
+
+# Secret-blocking baseline (required by shared pre-commit hook)
+k8s/secret.yaml
+secrets/
+keys/
+*.pem
+*.key
+*private*
+*backup*
+*bck*
+*.bak*
