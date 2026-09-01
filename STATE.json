@@ -1,21 +1,4 @@
 {
-  "schemaVersion": 1,
-  "project": "domain-research",
-  "lifecycle": "production",
-  "health": "active",
-  "activeTask": "bootstrap-service",
-  "lastUpdated": "2026-08-31T00:00:00Z",
-  "deployment": {
-    "status": "deployed",
-    "environment": "statex-apps"
-  },
-  "blockers": [
-    "The future provider purchase flow and production notification recipient policy require explicit project-owner approval before they are expanded beyond the current evidence-driven domain watch workflow."
-  ],
-  "followUps": [
-    "Confirm the approved registrar provider and notification recipient policy for any future purchase or production notification expansion.",
-    "Keep the service aligned to RDAP-first availability evidence and the current watch-based domain lifecycle workflow."
-  ],
   "schema_version": "1.0",
   "repository": "domain-research",
   "service": {
