@@ -24,15 +24,11 @@ Completed:
 - Deploy script now runs migrations through a Kubernetes Job with ConfigMap+ExternalSecret env.
 - Validation after deployment hardening passed: `npm run build`, `npm test`, `npm run docs:audit`, `npm run gate:pre-coding`, `npm run gate:deployment`, and manifest dry-run.
 - Production deployment completed on Kubernetes.
-- AI service-token issuance completed for `domain-research`; `AI_SERVICE_TOKEN` in `secret/prod/domain-research` now contains an AI-compatible service JWT and the deployment was restarted from the synced ExternalSecret.
 - AI agent registry configured active `domain-suggestion` agent for service scope `domain-research`.
-- Notifications token wiring completed using the RunLayer-compatible ExternalSecret pattern: `NOTIFICATION_SERVICE_TOKEN` is sourced from `secret/prod/notifications-microservice` property `SERVICE_TOKEN`.
 
 Pending:
 
 - Paid domain provider approval and API keys.
-- Owner-approved dedicated notifications machine-auth contract if the shared notifications token must be replaced.
-
 
 Auth integration update:
 
@@ -82,31 +78,7 @@ Date: 2026-06-26
 
 AI integration:
 
-```bash
-vault kv patch secret/prod/domain-research AI_SERVICE_TOKEN=<redacted>
-kubectl -n statex-apps annotate externalsecret domain-research-secret force-sync=<timestamp> --overwrite
-kubectl -n statex-apps rollout restart deployment/domain-research
-kubectl -n statex-apps rollout status deployment/domain-research --timeout=180s
-# deployment "domain-research" successfully rolled out
-
-kubectl -n statex-apps exec -i deploy/domain-research -- node -
-# POST http://ai-microservice.statex-apps.svc.cluster.local:3380/ai/complete
-# HTTP 200; AI service accepted the domain-research service token.
-# AI service accepted the domain-research service token.
-```
-
 Notifications integration:
-
-```bash
-# Previous placeholder state before owner approval:
-# GET http://notifications-microservice.statex-apps.svc.cluster.local:3368/admin/stats
-# HTTP 401 {"message":"Invalid token","error":"Unauthorized","statusCode":401}
-
-# Final approved RunLayer-compatible state:
-# k8s/external-secret.yaml sources NOTIFICATION_SERVICE_TOKEN from
-# secret/prod/notifications-microservice property SERVICE_TOKEN.
-# Domain Research was restarted after ExternalSecret sync.
-```
 
 ## Final Integration Evidence
 
