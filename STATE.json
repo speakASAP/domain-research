@@ -9,11 +9,15 @@
   },
   "planning": {
     "status": "active",
-    "active_goal_ids": [],
+    "active_goal_ids": [
+      "GOAL-DOMAIN-RESEARCH-001"
+    ],
     "next_ready_goal_ids": [],
     "blocked_goal_ids": [],
-    "active_workstream_ids": [],
-    "last_updated_at": "2026-09-05T00:00:00Z"
+    "active_workstream_ids": [
+      "TASK-DOMAIN-RESEARCH-001"
+    ],
+    "last_updated_at": "2026-09-05T18:06:57Z"
   },
   "delivery": {
     "last_validation_id": null,
