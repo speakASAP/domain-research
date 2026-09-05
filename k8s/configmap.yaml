@@ -16,7 +16,6 @@ data:
   LOGGING_SERVICE_API_PATH: "/api/logs"
   NOTIFICATION_SERVICE_URL: "http://notifications-microservice.statex-apps.svc.cluster.local:3368"
   AI_SERVICE_URL: "http://ai-microservice.statex-apps.svc.cluster.local:3380"
-  DOCS_RAG_SERVICE_URL: "http://docs-rag-microservice.statex-apps.svc.cluster.local:3397"
   DB_HOST: "db-server-postgres.statex-apps.svc.cluster.local"
   DB_PORT: "5432"
   DB_USER: "domain_research"
