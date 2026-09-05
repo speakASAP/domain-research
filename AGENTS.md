@@ -30,8 +30,4 @@ This repo preserves the chain by documenting its service intent, operational bou
 The final report must describe the real domain-research service boundary, its validation evidence, and any remaining operational approval blockers that are not yet resolved.
 
 ## Service-to-service authentication
-Any call this service makes to, or receives from, another service is governed by
-[`auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
-Read it before writing or debugging a machine call — including a 401 from an internal
-endpoint. New machine paths use an Auth-issued per-pair RS256 service JWT; a shared static
-token is legacy and closed to new adopters.
+For machine service identity, follow the sole canonical [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). It is not reproduced here.
