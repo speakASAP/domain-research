@@ -65,6 +65,13 @@ spec:
                     throw lastError;
                   }
                   (async () => {
+                    // NON-COMPLIANT with auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md.
+                    // Self-minted HS256 with an invented `sub` (no principal row, so it cannot be
+                    // revoked) and a self-granted admin role. DO NOT COPY THIS INTO A NEW SERVICE.
+                    // The compliant pattern is warehouse-microservice/k8s/reservation-expiry-cronjob.yaml:
+                    // read a mounted per-pair token and fail closed if absent. Replacing this needs a
+                    // principal minted with auth-microservice/scripts/provision-service-token.js
+                    // (role internal:domain-research:jobs), so it is tracked, not silently changed here.
                     const jwt = require('jsonwebtoken');
                     const baseUrl = 'http://domain-research:4860';
                     if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is required');
