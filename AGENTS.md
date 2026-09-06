@@ -31,3 +31,9 @@ The final report must describe the real domain-research service boundary, its va
 
 ## Service-to-service authentication
 For machine service identity, follow the sole canonical [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). It is not reproduced here.
+
+**Known non-conformance — do not copy or extend.** `InternalServiceGuard` (`src/service-identity/internal-service.guard.ts`) verifies the bearer token with `jwt.verify(token, process.env.JWT_SECRET)` — an HS256 shared-secret verification.
+
+This is a self-signed service JWT validated with a service-owned signing secret, which the standard prohibits by name. Auth is the only permitted signer, verification must be RS256 against Auth (or `POST /auth/validate`), and the token must carry an `internal:domain-research:<least-privilege-role>` claim from a revocable Auth principal. Anything holding `JWT_SECRET` can currently mint an accepted token.
+
+Do not extend this guard to new routes or callers; the fix is migration to Auth-issued per-pair RS256 credentials.
