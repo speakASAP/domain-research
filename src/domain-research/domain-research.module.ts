@@ -12,12 +12,21 @@ import { DomainCheck } from './entities/domain-check.entity';
 import { DomainNotification } from './entities/domain-notification.entity';
 import { DomainSuggestionJob } from './entities/domain-suggestion-job.entity';
 import { DomainWatch } from './entities/domain-watch.entity';
+import { InternalServiceGuard } from '../service-identity/internal-service.guard';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([DomainCandidate, DomainCheck, DomainNotification, DomainSuggestionJob, DomainWatch]),
   ],
   controllers: [DomainResearchController],
-  providers: [AiClient, NotificationClient, AvailabilityService, DomainSuggestionService, DomainWatchService, SchedulerService],
+  providers: [
+    AiClient,
+    NotificationClient,
+    AvailabilityService,
+    DomainSuggestionService,
+    DomainWatchService,
+    SchedulerService,
+    InternalServiceGuard,
+  ],
 })
 export class DomainResearchModule {}
