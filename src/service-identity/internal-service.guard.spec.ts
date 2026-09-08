@@ -68,4 +68,21 @@ describe('InternalServiceGuard', () => {
       guard.canActivate(mockContext({ authorization: 'Bearer rs256-token' })),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  it('rejects service/admin bag roles on job routes (jobs only)', async () => {
+    globalThis.fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        valid: true,
+        user: {
+          id: 'svc-1',
+          roles: ['internal:domain-research:service', 'internal:domain-research:admin'],
+        },
+      }),
+    })) as never;
+
+    await expect(
+      guard.canActivate(mockContext({ authorization: 'Bearer rs256-token' })),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
 });

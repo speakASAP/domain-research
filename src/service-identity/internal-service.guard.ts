@@ -6,10 +6,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-const SERVICE_ROLES: ReadonlySet<string> = new Set([
-  'internal:domain-research:service',
+/** Job CronJobs only — DOMAIN_RESEARCH_JOBS_SERVICE_TOKEN holds this role. */
+const JOB_ROUTE_ROLES: ReadonlySet<string> = new Set([
   'internal:domain-research:jobs',
-  'internal:domain-research:admin',
 ]);
 
 type AuthValidateResponse = {
@@ -44,8 +43,10 @@ export class InternalServiceGuard implements CanActivate {
     }
 
     const roles = await this.validateRoles(token);
-    if (!roles.some((r) => SERVICE_ROLES.has(r))) {
-      throw new ForbiddenException('Principal lacks required domain-research role');
+    if (!roles.some((r) => JOB_ROUTE_ROLES.has(r))) {
+      throw new ForbiddenException(
+        'Principal lacks required role internal:domain-research:jobs',
+      );
     }
     request.user = { roles };
     return true;
