@@ -53,9 +53,14 @@ Production deploy:
 Residual validation debt:
 
 - `npm install` reported 46 npm audit vulnerabilities inherited through the selected Nest/toolchain dependency set.
-- Real AI/notification service-token issuance remains pending.
+- Real AI/notification service tokens: provision `(domain-research -> ai)` and
+  `(domain-research -> notifications)` pair principals and mint RS256 Bearer
+  tokens with `auth-microservice/scripts/provision-service-token.js` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 
 ## Known Blockers
 
 - `[MISSING: hosted Auth roles/client registration]`
-- `[MISSING: real AI/notification service-token issuer contract]`
+- Provision AI and Notifications service credentials under
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)
+  (Auth-issued RS256 Bearer for each `(caller -> target)` pair; no API-key S2S).

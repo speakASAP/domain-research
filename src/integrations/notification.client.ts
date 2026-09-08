@@ -6,12 +6,18 @@ export class NotificationClient {
   async sendDomainNotification(notification: DomainNotification): Promise<void> {
     const baseUrl = process.env.NOTIFICATION_SERVICE_URL;
     if (!baseUrl) throw new Error('NOTIFICATION_SERVICE_URL is not configured');
+    const token = (process.env.NOTIFICATION_SERVICE_TOKEN || '').trim();
+    if (!token) {
+      throw new Error(
+        'NOTIFICATION_SERVICE_TOKEN is not set. domain-research→notifications requires an Auth-issued per-pair RS256 Bearer.',
+      );
+    }
     const message = notificationMessage(notification);
     const response = await fetch(`${baseUrl.replace(/\/$/, '')}/notifications/send`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        ...(process.env.NOTIFICATION_SERVICE_TOKEN ? { authorization: `Bearer ${process.env.NOTIFICATION_SERVICE_TOKEN}` } : {}),
+        authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         channel: notification.channel,
