@@ -22,7 +22,7 @@ spec:
       template:
         metadata:
           labels:
-            app: domain-research
+            app: domain-research-job
             component: expiry-recheck
         spec:
           restartPolicy: Never
